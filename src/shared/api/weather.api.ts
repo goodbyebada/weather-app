@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { WeatherResponse, ForecastResponse } from '../types/weather.types';
+import type { WeatherResponse, ForecastResponse } from '@shared/types/weather.types';
 
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
