@@ -1,10 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { fetchCurrentWeather, fetchForecast } from "@shared/api/weather.api";
 import { parseApiError } from "@shared/api/error";
 import type {
   WeatherResponse,
   ForecastResponse,
 } from "@shared/types/weather.types";
+import { mapForecastToHourly } from "../lib/hourlyMapper";
+
 
 // Query Keys
 export const weatherKeys = {
@@ -29,19 +31,33 @@ export const useWeatherQuery = (lat: number, lon: number, enabled = true) => {
   });
 };
 
+
 // 시간별 예보 조회 훅
 export const useHourlyForecastQuery = (
   lat: number,
   lon: number,
   enabled = true,
 ) => {
-  return useQuery<ForecastResponse>({
+  return useQuery({
     queryKey: weatherKeys.forecast(lat, lon),
     queryFn: () => fetchForecast(lat, lon),
     staleTime: 1000 * 60 * 10, // 10분
     gcTime: 1000 * 60 * 15, // 15분
     enabled,
+    select: (data: ForecastResponse) => mapForecastToHourly(data),
     throwOnError: false,
     meta: { parseApiError },
+  });
+};
+
+
+// 여러 위치의 날씨 정보를 병렬로 조회하는 훅 (즐겨찾기용)
+export const useFavoritesWeatherQuery = (locations: { lat: number, lon: number }[]) => {
+  return useQueries({
+    queries: locations.map((loc) => ({
+      queryKey: weatherKeys.current(loc.lat, loc.lon),
+      queryFn: () => fetchCurrentWeather(loc.lat, loc.lon),
+      staleTime: 1000 * 60 * 5,
+    })),
   });
 };
