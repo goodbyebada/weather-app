@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  fetchCurrentWeather,
-  fetchForecast,
-} from "@shared/api/weather.api";
+import { fetchCurrentWeather, fetchForecast } from "@shared/api/weather.api";
 import { parseApiError } from "@shared/api/error";
 
 // 서울 기본 좌표

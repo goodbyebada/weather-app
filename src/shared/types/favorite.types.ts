@@ -1,4 +1,4 @@
-import type { Coordinates } from './location.types';
+import type { Coordinates } from "./location.types";
 
 export interface Favorite {
   id: string;
@@ -10,7 +10,7 @@ export interface Favorite {
 
 export interface FavoriteStore {
   favorites: Favorite[];
-  addFavorite: (favorite: Omit<Favorite, 'id' | 'createdAt'>) => boolean;
+  addFavorite: (favorite: Omit<Favorite, "id" | "createdAt">) => boolean;
   removeFavorite: (id: string) => void;
   updateFavoriteName: (id: string, name: string) => void;
   isFavorite: (originalName: string) => boolean;

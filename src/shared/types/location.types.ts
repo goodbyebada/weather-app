@@ -15,5 +15,5 @@ export interface Coordinates {
 // 검색 결과 항목
 export interface LocationSearchResult {
   district: District;
-  matchType: 'city' | 'district' | 'dong';
+  matchType: "city" | "district" | "dong";
 }

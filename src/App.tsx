@@ -1,5 +1,5 @@
-import { QueryProvider } from '@app/providers/QueryProvider';
-import { TestPage } from '@pages/test/TestPage';
+import { QueryProvider } from "@app/providers/QueryProvider";
+import { TestPage } from "@pages/test/TestPage";
 
 function App() {
   return (
