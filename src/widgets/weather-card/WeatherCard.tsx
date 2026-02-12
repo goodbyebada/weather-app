@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Card from "@shared/ui/card/Card";
 import { StarIcon } from "@shared/ui/icons";
+import { EditNameButton } from "@features/edit-favorite-name";
 import { useFavoriteStore } from "@entities/favorite/model/store";
 import type { WeatherData } from "@shared/types/weather.types";
 
@@ -54,17 +55,25 @@ const WeatherCard = ({ weather, onFavoriteToggle }: WeatherCardProps) => {
           <h3 className="text-lg font-semibold opacity-90">{weather.locationName.split("-").pop()}</h3>
           <p className="text-xs opacity-75">{weather.locationName.split("-").slice(0, -1).join(" ")}</p>
         </div>
-        <button
-          onClick={handleFavoriteClick}
-          className={`p-2 rounded-full transition-all ${
-            favorited 
-              ? "bg-yellow-400 text-white shadow-lg" 
-              : "bg-white/20 text-white hover:bg-white/40"
-          }`}
-          aria-label={favorited ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-        >
-          <StarIcon className={favorited ? "fill-current" : ""} />
-        </button>
+        <div className="flex items-center gap-2">
+          {favorited && favoriteItem && (
+            <EditNameButton
+              favoriteId={favoriteItem.id}
+              initialName={favoriteItem.name}
+            />
+          )}
+          <button
+            onClick={handleFavoriteClick}
+            className={`p-2 rounded-full transition-all ${
+              favorited 
+                ? "bg-yellow-400 text-white shadow-lg" 
+                : "bg-white/20 text-white hover:bg-white/40"
+            }`}
+            aria-label={favorited ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+          >
+            <StarIcon className={favorited ? "fill-current" : ""} />
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 flex items-center justify-between">

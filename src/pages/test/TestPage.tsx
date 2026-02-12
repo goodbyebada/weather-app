@@ -1,19 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCurrentWeather, fetchForecast } from "@shared/api/weather.api";
 import { parseApiError } from "@shared/api/error";
+import { SearchBar } from "@widgets/search-bar";
 
 // 서울 기본 좌표
 const DEFAULT_LAT = 37.5683;
 const DEFAULT_LON = 126.9778;
 
 export const TestPage = () => {
+  const { lat: paramLat, lon: paramLon } = useParams();
+  
   const [lat, setLat] = useState(DEFAULT_LAT);
   const [lon, setLon] = useState(DEFAULT_LON);
   const [queryCoords, setQueryCoords] = useState({
     lat: DEFAULT_LAT,
     lon: DEFAULT_LON,
   });
+
+  // URL 파라미터가 있으면 해당 좌표로 업데이트
+  useEffect(() => {
+    if (paramLat && paramLon) {
+      const nLat = Number(paramLat);
+      const nLon = Number(paramLon);
+      setLat(nLat);
+      setLon(nLon);
+      setQueryCoords({ lat: nLat, lon: nLon });
+    }
+  }, [paramLat, paramLon]);
 
   const weatherQuery = useQuery({
     queryKey: ["weather", queryCoords.lat, queryCoords.lon],
@@ -29,11 +44,18 @@ export const TestPage = () => {
     setQueryCoords({ lat, lon });
   };
 
+
   return (
     <div style={{ padding: 20, fontFamily: "monospace" }}>
       <h1>API Test Page</h1>
 
+      <div style={{ marginBottom: 40, background: '#f8f9fa', padding: 20, borderRadius: 16 }}>
+        <h2 style={{ marginBottom: 16 }}>Location Search (Widget Test)</h2>
+        <SearchBar />
+      </div>
+
       <div style={{ marginBottom: 20 }}>
+
         <label>
           위도:{" "}
           <input
