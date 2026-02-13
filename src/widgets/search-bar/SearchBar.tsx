@@ -17,18 +17,31 @@ const SearchBar = () => {
   const debouncedQuery = useDebounce(query, 300);
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     if (debouncedQuery.trim()) {
       const searchResults = searchDistricts(debouncedQuery);
       setResults(searchResults);
       setIsOpen(searchResults.length > 0);
+      setHighlightedIndex(0);
     } else {
       setResults([]);
       setIsOpen(false);
+      setHighlightedIndex(-1);
     }
-    setHighlightedIndex(-1);
   }, [debouncedQuery]);
+
+  useEffect(() => {
+    if (isOpen && listRef.current && highlightedIndex >= 0) {
+      const list = listRef.current;
+      const element = list.children[highlightedIndex] as HTMLElement;
+      if (element) {
+        element.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    }
+  }, [highlightedIndex, isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -45,6 +58,11 @@ const SearchBar = () => {
     const fullAddress = `${district.city} ${district.district || ""} ${district.dong || ""}`.trim();
     
     setQuery(fullAddress);
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
+
+    console.log(fullAddress);
     setIsOpen(false);
     setIsLoading(true);
 
@@ -65,6 +83,7 @@ const SearchBar = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) return;
+    if (e.nativeEvent.isComposing) return;
 
     switch (e.key) {
       case "ArrowDown":
@@ -96,6 +115,7 @@ const SearchBar = () => {
         <Input
           type="search"
           placeholder="지역을 검색하세요 (예: 서울, 강남구, 청운동)"
+          ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -115,11 +135,12 @@ const SearchBar = () => {
       </div>
 
       {isOpen && (
-        <ul
-          id="search-results"
-          role="listbox"
-          className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden max-h-80 overflow-y-auto"
-        >
+    <ul
+        ref={listRef}
+        id="search-results"
+        role="listbox"
+        className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden max-h-80 overflow-y-auto"
+    >
           {results.map((result, index) => (
             <li
               key={result.district.full}
