@@ -1,5 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryProvider } from "@app/providers/QueryProvider";
+import MainPage from "@pages/main/MainPage";
+import WeatherDetailPage from "@pages/weather-detail/WeatherDetailPage";
+import NotFoundPage from "@pages/not-found/NotFoundPage";
 import { TestPage } from "@pages/test/TestPage";
 
 function App() {
@@ -7,9 +10,10 @@ function App() {
     <QueryProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<TestPage />} />
+          <Route path="/" element={<MainPage />} />
+          <Route path="/weather/:lat/:lon" element={<WeatherDetailPage />} />
           <Route path="/test" element={<TestPage />} />
-          <Route path="/weather/:lat/:lon" element={<TestPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </QueryProvider>
@@ -17,4 +21,3 @@ function App() {
 }
 
 export default App;
-
