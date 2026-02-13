@@ -18,6 +18,7 @@ const SearchBar = () => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     if (debouncedQuery.trim()) {
@@ -31,6 +32,16 @@ const SearchBar = () => {
       setHighlightedIndex(-1);
     }
   }, [debouncedQuery]);
+
+  useEffect(() => {
+    if (isOpen && listRef.current && highlightedIndex >= 0) {
+      const list = listRef.current;
+      const element = list.children[highlightedIndex] as HTMLElement;
+      if (element) {
+        element.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    }
+  }, [highlightedIndex, isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -124,11 +135,12 @@ const SearchBar = () => {
       </div>
 
       {isOpen && (
-        <ul
-          id="search-results"
-          role="listbox"
-          className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden max-h-80 overflow-y-auto"
-        >
+    <ul
+        ref={listRef}
+        id="search-results"
+        role="listbox"
+        className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden max-h-80 overflow-y-auto"
+    >
           {results.map((result, index) => (
             <li
               key={result.district.full}
