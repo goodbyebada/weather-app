@@ -17,17 +17,19 @@ const SearchBar = () => {
   const debouncedQuery = useDebounce(query, 300);
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (debouncedQuery.trim()) {
       const searchResults = searchDistricts(debouncedQuery);
       setResults(searchResults);
       setIsOpen(searchResults.length > 0);
+      setHighlightedIndex(0);
     } else {
       setResults([]);
       setIsOpen(false);
+      setHighlightedIndex(-1);
     }
-    setHighlightedIndex(-1);
   }, [debouncedQuery]);
 
   useEffect(() => {
@@ -45,6 +47,11 @@ const SearchBar = () => {
     const fullAddress = `${district.city} ${district.district || ""} ${district.dong || ""}`.trim();
     
     setQuery(fullAddress);
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
+
+    console.log(fullAddress);
     setIsOpen(false);
     setIsLoading(true);
 
@@ -65,6 +72,7 @@ const SearchBar = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) return;
+    if (e.nativeEvent.isComposing) return;
 
     switch (e.key) {
       case "ArrowDown":
@@ -96,6 +104,7 @@ const SearchBar = () => {
         <Input
           type="search"
           placeholder="지역을 검색하세요 (예: 서울, 강남구, 청운동)"
+          ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
