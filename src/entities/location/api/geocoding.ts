@@ -1,37 +1,61 @@
 import axios from "axios";
 import type { Coordinates } from "@shared/types/location.types";
 
-const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
-const GEOCODING_URL = "https://api.openweathermap.org/geo/1.0/direct";
+const API_KEY = import.meta.env.VITE_KAKAO_REST_KEY;
+const GEOCODING_URL = "https://dapi.kakao.com/v2/local/search/address.json";
 
-interface GeocodingResponse {
-  name: string;
-  local_names?: Record<string, string>;
-  lat: number;
-  lon: number;
-  country: string;
-  state?: string;
+interface KakaoAddressDocument {
+  address_name: string;
+  y: string;
+  x: string;
+  address_type: string;
+  x_coor: string;
+  y_coor: string;
+}
+
+interface KakaoGeocodingResponse {
+  documents: KakaoAddressDocument[];
+  meta: {
+    total_count: number;
+    pageable_count: number;
+    is_end: boolean;
+  };
 }
 
 /**
  * 주소(지역명) → 좌표 변환
- * OpenWeatherMap Geocoding API 사용
+ * Kakao Local API (주소 검색) 사용
  */
 export const fetchCoordinates = async (
   query: string,
 ): Promise<Coordinates | null> => {
-  const { data } = await axios.get<GeocodingResponse[]>(GEOCODING_URL, {
-    params: {
-      q: `${query},KR`,
-      limit: 1,
-      appid: API_KEY,
-    },
-  });
+  const searchAddress = query.trim().split(/\s+/).pop() || "";
 
-  if (data.length === 0) return null;
+  if (!searchAddress) return null;
 
-  return {
-    lat: data[0].lat,
-    lon: data[0].lon,
-  };
+  try {
+    const { data } = await axios.get<KakaoGeocodingResponse>(GEOCODING_URL, {
+      headers: {
+        Authorization: `KakaoAK ${API_KEY}`,
+      },
+      params: {
+        query: searchAddress,
+        analyze_type: 'similar',
+        page: 1,
+        size: 1,
+      },
+    });
+
+    if (data.documents.length === 0) return null;
+
+    const { x, y } = data.documents[0];
+
+    return {
+      lat: parseFloat(y),
+      lon: parseFloat(x),
+    };
+  } catch (error) {
+    console.error("Geocoding fetch error:", error);
+    return null;
+  }
 };
