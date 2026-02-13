@@ -35,7 +35,7 @@ const EditNameButton = ({ favoriteId, initialName }: EditNameButtonProps) => {
             initialName={initialName}
             onConfirm={(newName) => updateFavoriteName(favoriteId, newName)}
           />,
-          document.body
+          document.body,
         )}
     </>
   );

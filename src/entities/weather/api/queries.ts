@@ -7,7 +7,6 @@ import type {
 } from "@shared/types/weather.types";
 import { mapForecastToHourly } from "../lib/hourlyMapper";
 
-
 // Query Keys
 export const weatherKeys = {
   all: ["weather"] as const,
@@ -31,7 +30,6 @@ export const useWeatherQuery = (lat: number, lon: number, enabled = true) => {
   });
 };
 
-
 // 시간별 예보 조회 훅
 export const useHourlyForecastQuery = (
   lat: number,
@@ -50,9 +48,10 @@ export const useHourlyForecastQuery = (
   });
 };
 
-
 // 여러 위치의 날씨 정보를 병렬로 조회하는 훅 (즐겨찾기용)
-export const useFavoritesWeatherQuery = (locations: { lat: number, lon: number }[]) => {
+export const useFavoritesWeatherQuery = (
+  locations: { lat: number; lon: number }[],
+) => {
   return useQueries({
     queries: locations.map((loc) => ({
       queryKey: weatherKeys.current(loc.lat, loc.lon),

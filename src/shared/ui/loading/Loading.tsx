@@ -37,9 +37,7 @@ const Loading = ({ type = "card", count = 1 }: LoadingProps) => {
           case "text":
             return <Skeleton key={i} className="mb-2 h-4 w-full" />;
           case "circle":
-            return (
-              <Skeleton key={i} className="h-12 w-12 rounded-full" />
-            );
+            return <Skeleton key={i} className="h-12 w-12 rounded-full" />;
         }
       })}
       <span className="sr-only">로딩 중</span>

@@ -13,7 +13,7 @@ const SearchBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const debouncedQuery = useDebounce(query, 300);
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,7 +45,10 @@ const SearchBar = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -55,8 +58,9 @@ const SearchBar = () => {
 
   const handleSelect = async (result: LocationSearchResult) => {
     const { district } = result;
-    const fullAddress = `${district.city} ${district.district || ""} ${district.dong || ""}`.trim();
-    
+    const fullAddress =
+      `${district.city} ${district.district || ""} ${district.dong || ""}`.trim();
+
     setQuery(fullAddress);
     if (inputRef.current) {
       inputRef.current.blur();
@@ -92,7 +96,9 @@ const SearchBar = () => {
         break;
       case "ArrowUp":
         e.preventDefault();
-        setHighlightedIndex((prev) => (prev - 1 + results.length) % results.length);
+        setHighlightedIndex(
+          (prev) => (prev - 1 + results.length) % results.length,
+        );
         break;
       case "Enter":
         e.preventDefault();
@@ -129,18 +135,18 @@ const SearchBar = () => {
         />
         {isLoading && (
           <div className="absolute right-4 top-1/2 -translate-y-1/2">
-             <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" />
+            <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" />
           </div>
         )}
       </div>
 
       {isOpen && (
-    <ul
-        ref={listRef}
-        id="search-results"
-        role="listbox"
-        className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden max-h-80 overflow-y-auto"
-    >
+        <ul
+          ref={listRef}
+          id="search-results"
+          role="listbox"
+          className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden max-h-80 overflow-y-auto"
+        >
           {results.map((result, index) => (
             <li
               key={result.district.full}
@@ -149,13 +155,22 @@ const SearchBar = () => {
               onClick={() => handleSelect(result)}
               onMouseEnter={() => setHighlightedIndex(index)}
               className={`px-6 py-3.5 cursor-pointer transition-colors flex items-center gap-3 ${
-                index === highlightedIndex ? "bg-primary/5 text-primary" : "text-gray-700 hover:bg-gray-50"
+                index === highlightedIndex
+                  ? "bg-primary/5 text-primary"
+                  : "text-gray-700 hover:bg-gray-50"
               }`}
             >
               <div className="flex flex-col">
-                <span className="font-medium">{result.district.full.replace(/-/g, " ")}</span>
+                <span className="font-medium">
+                  {result.district.full.replace(/-/g, " ")}
+                </span>
                 <span className="text-xs text-gray-400">
-                  {result.matchType === "city" ? "시/도" : result.matchType === "district" ? "시/군/구" : "읍/면/동"} 매칭
+                  {result.matchType === "city"
+                    ? "시/도"
+                    : result.matchType === "district"
+                      ? "시/군/구"
+                      : "읍/면/동"}{" "}
+                  매칭
                 </span>
               </div>
             </li>

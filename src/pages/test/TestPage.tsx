@@ -11,7 +11,7 @@ const DEFAULT_LON = 126.9778;
 
 export const TestPage = () => {
   const { lat: paramLat, lon: paramLon } = useParams();
-  
+
   const [lat, setLat] = useState(DEFAULT_LAT);
   const [lon, setLon] = useState(DEFAULT_LON);
   const [queryCoords, setQueryCoords] = useState({
@@ -44,18 +44,23 @@ export const TestPage = () => {
     setQueryCoords({ lat, lon });
   };
 
-
   return (
     <div style={{ padding: 20, fontFamily: "monospace" }}>
       <h1>API Test Page</h1>
 
-      <div style={{ marginBottom: 40, background: '#f8f9fa', padding: 20, borderRadius: 16 }}>
+      <div
+        style={{
+          marginBottom: 40,
+          background: "#f8f9fa",
+          padding: 20,
+          borderRadius: 16,
+        }}
+      >
         <h2 style={{ marginBottom: 16 }}>Location Search (Widget Test)</h2>
         <SearchBar />
       </div>
 
       <div style={{ marginBottom: 20 }}>
-
         <label>
           위도:{" "}
           <input

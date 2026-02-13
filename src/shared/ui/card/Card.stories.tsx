@@ -1,13 +1,13 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import Card from './Card';
+import type { Meta, StoryObj } from "@storybook/react";
+import Card from "./Card";
 
 const meta = {
-  title: 'Shared/UI/Card',
+  title: "Shared/UI/Card",
   component: Card,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Card>;
 
 export default meta;
@@ -33,6 +33,6 @@ export const WithInteraction: Story = {
         <p className="text-gray-600">호버해보세요.</p>
       </div>
     ),
-    onClick: () => alert('카드 클릭됨!'),
+    onClick: () => alert("카드 클릭됨!"),
   },
 };
