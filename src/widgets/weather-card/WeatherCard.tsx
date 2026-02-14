@@ -11,19 +11,22 @@ interface WeatherCardProps {
   onFavoriteToggle?: () => void;
 }
 
-const WeatherCard = ({ weather, originalName, onFavoriteToggle }: WeatherCardProps) => {
+const WeatherCard = ({
+  weather,
+  originalName,
+  onFavoriteToggle,
+}: WeatherCardProps) => {
   const navigate = useNavigate();
   const { favorites, addFavorite, removeFavorite, isFavorite } =
     useFavoriteStore();
 
   const lookupName = originalName || weather.locationName;
   const favorited = isFavorite(lookupName);
-  const favoriteItem = favorites.find(
-    (f) => f.originalName === lookupName,
-  );
+  const favoriteItem = favorites.find((f) => f.originalName === lookupName);
 
   const handleCardClick = () => {
-    navigate(`/weather/${weather.coord.lat}/${weather.coord.lon}`);
+    const name = originalName || weather.locationName;
+    navigate(`/weather/${encodeURIComponent(name)}`);
   };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {

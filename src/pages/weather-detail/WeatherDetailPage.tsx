@@ -7,38 +7,50 @@ import {
 } from "@entities/weather/api/queries";
 import { mapWeatherResponseToData } from "@entities/weather/lib/weatherMapper";
 import { useFavoriteStore } from "@entities/favorite/model/store";
+import { useGeocodeQuery } from "@entities/location/api/queries";
+import { parseDistrict } from "@entities/location/lib/searchDistricts";
 
 const WeatherDetailPage = () => {
-  const { lat, lon } = useParams<{ lat: string; lon: string }>();
+  const { districtName } = useParams<{ districtName: string }>();
   const navigate = useNavigate();
   const { favorites, addFavorite, removeFavorite, isFavorite } =
     useFavoriteStore();
 
-  const numLat = Number(lat);
-  const numLon = Number(lon);
-  const isValidCoords = !isNaN(numLat) && !isNaN(numLon);
+  const decodedName = districtName ? decodeURIComponent(districtName) : "";
+  const district = decodedName ? parseDistrict(decodedName) : null;
+  const fullAddress = district
+    ? `${district.city} ${district.district || ""} ${district.dong || ""}`.trim()
+    : "";
+
+  const { data: coords, isLoading: isCoordsLoading } = useGeocodeQuery(
+    fullAddress,
+    !!fullAddress,
+  );
 
   const {
     data: weatherResponse,
     isLoading: isWeatherLoading,
     error: weatherError,
     refetch: refetchWeather,
-  } = useWeatherQuery(numLat, numLon, isValidCoords);
+  } = useWeatherQuery(coords?.lat ?? 0, coords?.lon ?? 0, !!coords);
 
   const { data: hourlyData, isLoading: isHourlyLoading } =
-    useHourlyForecastQuery(numLat, numLon, isValidCoords);
+    useHourlyForecastQuery(coords?.lat ?? 0, coords?.lon ?? 0, !!coords);
 
-  if (!isValidCoords) {
+  if (!decodedName) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-50">
-        <ErrorMessage message="잘못된 좌표입니다." />
+        <ErrorMessage message="잘못된 지역입니다." />
       </main>
     );
   }
 
-  const weather = weatherResponse
-    ? mapWeatherResponseToData(weatherResponse)
-    : null;
+  const isLoading = isCoordsLoading || isWeatherLoading;
+
+  const weather =
+    weatherResponse && decodedName
+      ? mapWeatherResponseToData(weatherResponse, decodedName)
+      : null;
 
   const favorited = weather ? isFavorite(weather.locationName) : false;
   const favoriteItem = weather
@@ -113,10 +125,10 @@ const WeatherDetailPage = () => {
         </nav>
 
         {/* 로딩 */}
-        {isWeatherLoading && <Loading type="card" count={2} />}
+        {isLoading && <Loading type="card" count={2} />}
 
         {/* 에러 */}
-        {!isWeatherLoading && weatherError && (
+        {!isLoading && weatherError && (
           <ErrorMessage
             message="날씨 정보를 불러올 수 없습니다."
             onRetry={() => refetchWeather()}

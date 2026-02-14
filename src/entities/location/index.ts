@@ -5,4 +5,4 @@ export {
 } from "./lib/searchDistricts";
 export type { SearchOptions } from "./lib/searchDistricts";
 export { fetchCoordinates, fetchReverseGeocode } from "./api/geocoding";
-export { useReverseGeocodeQuery } from "./api/queries";
+export { useGeocodeQuery, useReverseGeocodeQuery } from "./api/queries";

@@ -53,7 +53,13 @@ const FavoritesList = () => {
           locationName: favorite.name, // 별칭 적용
         };
 
-        return <WeatherCard key={favorite.id} weather={displayData} originalName={favorite.originalName} />;
+        return (
+          <WeatherCard
+            key={favorite.id}
+            weather={displayData}
+            originalName={favorite.originalName}
+          />
+        );
       })}
     </div>
   );
