@@ -48,55 +48,73 @@ const getChosung = (char: string): string => {
   return CHOSUNG[Math.floor((code - 0xac00) / 588)];
 };
 
-// 문자열의 초성만 추출
-const extractChosung = (str: string): string => {
-  return [...str].map(getChosung).join("");
-};
+/**
+ * 한글 포함 여부 확인 (초성 및 혼합 검색 지원)
+ * @param target 대상 문자열 (예: "광주광역시")
+ * @param query 검색어 (예: "광ㅈ", "ㅈㄹ")
+ * @returns 매칭 성공 시 시작 인덱스, 실패 시 -1
+ */
+export const koreanIncludes = (target: string, query: string): number => {
+  const normalizedTarget = target.toLowerCase();
+  const normalizedQuery = query.toLowerCase();
 
-// 검색어가 초성으로만 이루어져 있는지 판별
-const isChosungOnly = (query: string): boolean => {
-  return [...query].every((ch) => CHOSUNG.includes(ch));
-};
+  for (let i = 0; i <= normalizedTarget.length - normalizedQuery.length; i++) {
+    let match = true;
+    for (let j = 0; j < normalizedQuery.length; j++) {
+      const targetChar = normalizedTarget[i + j];
+      const queryChar = normalizedQuery[j];
 
-// 초성 매칭: 검색어의 각 초성이 대상 문자열의 초성과 순서대로 매칭되는지
-const matchChosung = (target: string, query: string): boolean => {
-  const targetChosung = extractChosung(target);
-  return targetChosung.includes(query);
+      // 검색어 문자가 초성인 경우
+      if (CHOSUNG.includes(queryChar)) {
+        if (getChosung(targetChar) !== queryChar) {
+          match = false;
+          break;
+        }
+      }
+      // 검색어 문자가 완성형인 경우
+      else {
+        if (targetChar !== queryChar) {
+          match = false;
+          break;
+        }
+      }
+    }
+    if (match) return i;
+  }
+
+  return -1;
 };
 
 // District의 각 계층에서 매칭 확인
 const matchDistrict = (
   district: District,
   query: string,
-  useChosung: boolean,
 ): LocationSearchResult | null => {
-  const normalizedQuery = query.trim().toLowerCase();
+  const normalizedQuery = query.trim();
   if (!normalizedQuery) return null;
 
-  const match = (target: string): boolean => {
-    if (useChosung) return matchChosung(target, normalizedQuery);
-    return target.toLowerCase().includes(normalizedQuery);
-  };
-
-  // 동 → 구 → 시 순서로 매칭 (가장 구체적인 것 우선)
-  if (district.dong && match(district.dong)) {
-    return { district, matchType: "dong" };
-  }
-  if (district.district && match(district.district)) {
-    return { district, matchType: "district" };
-  }
-  if (match(district.city)) {
+  // 시 → 구 → 동 순서로 매칭 (광역 자치단체 우선)
+  const cityIndex = koreanIncludes(district.city, normalizedQuery);
+  if (cityIndex !== -1) {
     return { district, matchType: "city" };
+  }
+  if (district.district) {
+    const index = koreanIncludes(district.district, normalizedQuery);
+    if (index !== -1) return { district, matchType: "district" };
+  }
+  if (district.dong) {
+    const index = koreanIncludes(district.dong, normalizedQuery);
+    if (index !== -1) return { district, matchType: "dong" };
   }
 
   return null;
 };
 
-// 검색 결과 정렬: matchType 우선순위 (dong > district > city), 같은 타입이면 이름순
+// 검색 결과 정렬: matchType 우선순위 (city > district > dong), 같은 타입이면 이름순
 const MATCH_PRIORITY: Record<LocationSearchResult["matchType"], number> = {
-  dong: 0,
+  city: 0,
   district: 1,
-  city: 2,
+  dong: 2,
 };
 
 const sortResults = (
@@ -134,7 +152,7 @@ export interface SearchOptions {
 
 /**
  * 지역 검색 함수
- * - 일반 텍스트 검색 및 초성 검색(ㅅㅇ → 서울) 지원
+ * - 일반 텍스트 검색 및 초성 검색(ㅅㅇ → 서울), 혼합 검색(광ㅈ → 광주) 지원
  * - 계층적 매칭 (시 > 구 > 동)
  * - 결과는 구체적인 매칭 우선 정렬
  */
@@ -146,11 +164,9 @@ export const searchDistricts = (
   const trimmed = query.trim();
   if (!trimmed) return [];
 
-  const useChosung = isChosungOnly(trimmed);
-
   const results: LocationSearchResult[] = [];
   for (const district of allDistricts) {
-    const result = matchDistrict(district, trimmed, useChosung);
+    const result = matchDistrict(district, trimmed);
     if (result) results.push(result);
   }
 
@@ -160,4 +176,4 @@ export const searchDistricts = (
   return sorted.slice(0, maxResults);
 };
 
-export { allDistricts, parseDistrict };
+export { allDistricts, parseDistrict, getChosung, CHOSUNG };
