@@ -19,18 +19,18 @@ const HourlyForecast = ({ items }: HourlyForecastProps) => {
         <span className="w-1 h-5 bg-primary rounded-full" />
         시간별 예보
       </h3>
-      
+
       <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-hide">
         {items.map((item) => (
-          <div 
-            key={item.dt} 
+          <div
+            key={item.dt}
             className="flex flex-col items-center min-w-[70px] py-4 rounded-2xl transition-colors hover:bg-gray-50"
           >
             <span className="text-xs font-medium text-gray-500 mb-3">
               {formatTime(item.dt)}
             </span>
-            <img 
-              src={`https://openweathermap.org/img/wn/${item.icon}.png`} 
+            <img
+              src={`https://openweathermap.org/img/wn/${item.icon}.png`}
               alt={item.description}
               className="w-12 h-12 mb-2 drop-shadow-sm"
             />

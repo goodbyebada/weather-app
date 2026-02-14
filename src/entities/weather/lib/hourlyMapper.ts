@@ -1,6 +1,11 @@
-import type { ForecastResponse, HourlyWeather } from "@shared/types/weather.types";
+import type {
+  ForecastResponse,
+  HourlyWeather,
+} from "@shared/types/weather.types";
 
-export const mapForecastToHourly = (response: ForecastResponse): HourlyWeather[] => {
+export const mapForecastToHourly = (
+  response: ForecastResponse,
+): HourlyWeather[] => {
   return response.list.slice(0, 10).map((item) => ({
     dt: item.dt,
     temp: item.main.temp,

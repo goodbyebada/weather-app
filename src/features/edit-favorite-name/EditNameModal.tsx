@@ -10,7 +10,12 @@ interface EditNameModalProps {
   onConfirm: (newName: string) => void;
 }
 
-const EditNameModal = ({ isOpen, onClose, initialName, onConfirm }: EditNameModalProps) => {
+const EditNameModal = ({
+  isOpen,
+  onClose,
+  initialName,
+  onConfirm,
+}: EditNameModalProps) => {
   const [name, setName] = useState(initialName);
   const [error, setError] = useState("");
 
@@ -23,12 +28,12 @@ const EditNameModal = ({ isOpen, onClose, initialName, onConfirm }: EditNameModa
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (name.trim().length === 0) {
       setError("이름을 입력해주세요.");
       return;
     }
-    
+
     if (name.length > 20) {
       setError("이름은 20자 이내로 입력해주세요.");
       return;
@@ -42,7 +47,10 @@ const EditNameModal = ({ isOpen, onClose, initialName, onConfirm }: EditNameModa
     <Modal isOpen={isOpen} onClose={onClose} title="별칭 수정">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
-          <label htmlFor="favorite-name" className="mb-1 block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="favorite-name"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
             즐겨찾기 이름
           </label>
           <Input

@@ -2,7 +2,7 @@ import type { WeatherResponse, WeatherData } from "@shared/types/weather.types";
 
 export const mapWeatherResponseToData = (
   response: WeatherResponse,
-  locationName?: string
+  locationName?: string,
 ): WeatherData => {
   return {
     locationName: locationName || response.name,

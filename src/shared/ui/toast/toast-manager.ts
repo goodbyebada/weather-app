@@ -2,9 +2,8 @@ type ToastType = "success" | "error" | "info";
 
 export type { ToastType };
 
-export let addToastFn:
-  | ((message: string, type?: ToastType) => void)
-  | null = null;
+export let addToastFn: ((message: string, type?: ToastType) => void) | null =
+  null;
 
 export const setAddToastFn = (
   fn: ((message: string, type?: ToastType) => void) | null,

@@ -110,3 +110,13 @@ export const LowTemperature: Story = {
     },
   },
 };
+
+export const WithAlias: Story = {
+  args: {
+    weather: {
+      ...baseWeather,
+      locationName: "우리집",
+    },
+    originalName: "서울특별시-종로구-청운동",
+  },
+};
