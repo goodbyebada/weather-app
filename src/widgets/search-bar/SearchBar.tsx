@@ -1,47 +1,50 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { SearchIcon } from "@shared/ui/icons";
 import Input from "@shared/ui/input/Input";
 import { useDebounce } from "@shared/lib/hooks/useDebounce";
 import { searchDistricts } from "@entities/location/lib/searchDistricts";
-import { fetchCoordinates } from "@entities/location/api/geocoding";
 import type { LocationSearchResult } from "@shared/types/location.types";
 
 const SearchBar = () => {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<LocationSearchResult[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
+  // isOpen 상태 제거, 대신 focus 상태로 관리
+  const [isFocused, setIsFocused] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [isLoading, setIsLoading] = useState(false);
 
   const debouncedQuery = useDebounce(query, 300);
+
+  const results = useMemo(() => {
+    if (!debouncedQuery.trim()) {
+      return [];
+    }
+    return searchDistricts(debouncedQuery);
+  }, [debouncedQuery]);
+
+  // 검색어가 변경되면 하이라이트 인덱스 초기화 (Render-time state update)
+  const [prevDebouncedQuery, setPrevDebouncedQuery] = useState(debouncedQuery);
+  if (debouncedQuery !== prevDebouncedQuery) {
+    setPrevDebouncedQuery(debouncedQuery);
+    setHighlightedIndex(0);
+  }
+
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  useEffect(() => {
-    if (debouncedQuery.trim()) {
-      const searchResults = searchDistricts(debouncedQuery);
-      setResults(searchResults);
-      setIsOpen(searchResults.length > 0);
-      setHighlightedIndex(0);
-    } else {
-      setResults([]);
-      setIsOpen(false);
-      setHighlightedIndex(-1);
-    }
-  }, [debouncedQuery]);
+  // 파생 상태: 결과창 표시 여부
+  const showResults = isFocused && results.length > 0;
 
   useEffect(() => {
-    if (isOpen && listRef.current && highlightedIndex >= 0) {
+    if (showResults && listRef.current && highlightedIndex >= 0) {
       const list = listRef.current;
       const element = list.children[highlightedIndex] as HTMLElement;
       if (element) {
         element.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
     }
-  }, [highlightedIndex, isOpen]);
+  }, [highlightedIndex, showResults]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -49,44 +52,26 @@ const SearchBar = () => {
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        setIsFocused(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelect = async (result: LocationSearchResult) => {
+  const handleSelect = (result: LocationSearchResult) => {
     const { district } = result;
-    const fullAddress =
-      `${district.city} ${district.district || ""} ${district.dong || ""}`.trim();
 
-    setQuery(fullAddress);
+    setQuery(district.full.replace(/-/g, " "));
     if (inputRef.current) {
       inputRef.current.blur();
     }
-
-    console.log(fullAddress);
-    setIsOpen(false);
-    setIsLoading(true);
-
-    try {
-      const coords = await fetchCoordinates(fullAddress);
-      if (coords) {
-        navigate(`/weather/${coords.lat}/${coords.lon}`);
-      } else {
-        // Fallback or error handling
-        alert("해당 위치의 좌표를 찾을 수 없습니다.");
-      }
-    } catch (error) {
-      console.error("Failed to fetch coordinates:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    setIsFocused(false);
+    navigate(`/weather/${encodeURIComponent(district.full)}`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen) return;
+    if (!showResults) return;
     if (e.nativeEvent.isComposing) return;
 
     switch (e.key) {
@@ -107,7 +92,7 @@ const SearchBar = () => {
         }
         break;
       case "Escape":
-        setIsOpen(false);
+        setIsFocused(false);
         break;
     }
   };
@@ -125,22 +110,17 @@ const SearchBar = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => query.trim() && results.length > 0 && setIsOpen(true)}
+          onFocus={() => setIsFocused(true)}
           className="pl-10 pr-4 py-3 shadow-md border-transparent hover:border-gray-200 focus:border-primary transition-all rounded-2xl"
           role="combobox"
-          aria-expanded={isOpen}
+          aria-expanded={showResults}
           aria-haspopup="listbox"
           aria-controls="search-results"
           aria-autocomplete="list"
         />
-        {isLoading && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" />
-          </div>
-        )}
       </div>
 
-      {isOpen && (
+      {showResults && (
         <ul
           ref={listRef}
           id="search-results"
