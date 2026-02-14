@@ -1,0 +1,2 @@
+npx lint-staged && tsc -b --noEmit && vite build
+
