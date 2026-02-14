@@ -3,37 +3,64 @@ import { useNavigate } from "react-router-dom";
 import { SearchIcon } from "@shared/ui/icons";
 import Input from "@shared/ui/input/Input";
 import { useDebounce } from "@shared/lib/hooks/useDebounce";
-import { searchDistricts } from "@entities/location/lib/searchDistricts";
+import {
+  searchDistricts,
+  koreanIncludes,
+} from "@entities/location/lib/searchDistricts";
+import { fetchCoordinates } from "@entities/location/api/geocoding";
 import type { LocationSearchResult } from "@shared/types/location.types";
 
+/**
+ * 검색 결과 내 매칭 텍스트 하이라이팅 컴포넌트
+ */
+const HighlightText = ({ text, query }: { text: string; query: string }) => {
+  if (!query.trim()) return <span>{text}</span>;
+
+  const startIndex = koreanIncludes(text, query);
+
+  if (startIndex === -1) return <span>{text}</span>;
+
+  const before = text.substring(0, startIndex);
+  const match = text.substring(startIndex, startIndex + query.length);
+  const after = text.substring(startIndex + query.length);
+
+  return (
+    <span>
+      {before}
+      <span className="font-bold text-primary">{match}</span>
+      {after}
+    </span>
+  );
+};
 const SearchBar = () => {
   const [query, setQuery] = useState("");
   // isOpen 상태 제거, 대신 focus 상태로 관리
   const [isFocused, setIsFocused] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false);
 
   const debouncedQuery = useDebounce(query, 300);
-
-  const results = useMemo(() => {
-    if (!debouncedQuery.trim()) {
-      return [];
-    }
-    return searchDistricts(debouncedQuery);
-  }, [debouncedQuery]);
-
-  // 검색어가 변경되면 하이라이트 인덱스 초기화 (Render-time state update)
-  const [prevDebouncedQuery, setPrevDebouncedQuery] = useState(debouncedQuery);
-  if (debouncedQuery !== prevDebouncedQuery) {
-    setPrevDebouncedQuery(debouncedQuery);
-    setHighlightedIndex(0);
-  }
-
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  // 파생 상태: 결과창 표시 여부
+  // 검색 결과 계산 (useMemo 사용)
+  const results = useMemo(() => {
+    if (!debouncedQuery.trim()) return [];
+    return searchDistricts(debouncedQuery);
+  }, [debouncedQuery]);
+
+  // 검색어가 변경되면 하이라이트 인덱스 초기화
+  useEffect(() => {
+    if (debouncedQuery.trim()) {
+      setHighlightedIndex(0);
+    } else {
+      setHighlightedIndex(-1);
+    }
+  }, [debouncedQuery]);
+
+  // 파생 상태: 결과창 표시 여부 (isFocused와 결과 존재 여부로만 결정)
   const showResults = isFocused && results.length > 0;
 
   useEffect(() => {
@@ -72,6 +99,8 @@ const SearchBar = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!showResults) return;
+
+    // IME 입력 중 엔터키 등 중복 이벤트 방지
     if (e.nativeEvent.isComposing) return;
 
     switch (e.key) {
@@ -87,12 +116,13 @@ const SearchBar = () => {
         break;
       case "Enter":
         e.preventDefault();
-        if (highlightedIndex >= 0) {
+        if (highlightedIndex >= 0 && results[highlightedIndex]) {
           handleSelect(results[highlightedIndex]);
         }
         break;
       case "Escape":
         setIsFocused(false);
+        if (inputRef.current) inputRef.current.blur();
         break;
     }
   };
@@ -111,6 +141,7 @@ const SearchBar = () => {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
+          onBlur={() => setTimeout(() => setIsFocused(false), 150)}
           className="pl-10 pr-4 py-3 shadow-md border-transparent hover:border-gray-200 focus:border-primary transition-all rounded-2xl"
           role="combobox"
           aria-expanded={showResults}
@@ -118,6 +149,11 @@ const SearchBar = () => {
           aria-controls="search-results"
           aria-autocomplete="list"
         />
+        {isLoading && (
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" />
+          </div>
+        )}
       </div>
 
       {showResults && (
@@ -142,7 +178,10 @@ const SearchBar = () => {
             >
               <div className="flex flex-col">
                 <span className="font-medium">
-                  {result.district.full.replace(/-/g, " ")}
+                  <HighlightText
+                    text={result.district.full.replace(/-/g, " ")}
+                    query={debouncedQuery}
+                  />
                 </span>
                 <span className="text-xs text-gray-400">
                   {result.matchType === "city"
