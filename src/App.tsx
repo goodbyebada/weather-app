@@ -4,10 +4,12 @@ import MainPage from "@pages/main/MainPage";
 import WeatherDetailPage from "@pages/weather-detail/WeatherDetailPage";
 import NotFoundPage from "@pages/not-found/NotFoundPage";
 import { TestPage } from "@pages/test/TestPage";
+import { ToastContainer } from "@shared/ui/toast";
 
 function App() {
   return (
     <QueryProvider>
+      <ToastContainer />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<MainPage />} />

@@ -8,6 +8,7 @@ import {
   koreanIncludes,
 } from "@entities/location/lib/searchDistricts";
 import { fetchCoordinates } from "@entities/location/api/geocoding";
+import { toast } from "@shared/ui/toast";
 import type { LocationSearchResult } from "@shared/types/location.types";
 
 /**
@@ -34,12 +35,14 @@ const HighlightText = ({ text, query }: { text: string; query: string }) => {
 };
 const SearchBar = () => {
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 300);
+
   // isOpen 상태 제거, 대신 focus 상태로 관리
   const [isFocused, setIsFocused] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [prevDebouncedQuery, setPrevDebouncedQuery] = useState(debouncedQuery);
   const [isLoading, setIsLoading] = useState(false);
 
-  const debouncedQuery = useDebounce(query, 300);
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,14 +54,11 @@ const SearchBar = () => {
     return searchDistricts(debouncedQuery);
   }, [debouncedQuery]);
 
-  // 검색어가 변경되면 하이라이트 인덱스 초기화
-  useEffect(() => {
-    if (debouncedQuery.trim()) {
-      setHighlightedIndex(0);
-    } else {
-      setHighlightedIndex(-1);
-    }
-  }, [debouncedQuery]);
+  // 검색어가 변경되면 하이라이트 인덱스 초기화 (render phase adjustment)
+  if (debouncedQuery !== prevDebouncedQuery) {
+    setPrevDebouncedQuery(debouncedQuery);
+    setHighlightedIndex(debouncedQuery.trim() ? 0 : -1);
+  }
 
   // 파생 상태: 결과창 표시 여부 (isFocused와 결과 존재 여부로만 결정)
   const showResults = isFocused && results.length > 0;
@@ -86,15 +86,31 @@ const SearchBar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelect = (result: LocationSearchResult) => {
+  const handleSelect = async (result: LocationSearchResult) => {
     const { district } = result;
+    const fullAddress =
+      `${district.city} ${district.district || ""} ${district.dong || ""}`.trim();
 
-    setQuery(district.full.replace(/-/g, " "));
+    setQuery(fullAddress);
     if (inputRef.current) {
       inputRef.current.blur();
     }
-    setIsFocused(false);
-    navigate(`/weather/${encodeURIComponent(district.full)}`);
+
+    setIsLoading(true);
+
+    try {
+      const coords = await fetchCoordinates(fullAddress);
+      if (coords) {
+        navigate(`/weather/${encodeURIComponent(district.full)}`);
+      } else {
+        toast.error("해당 위치의 좌표를 찾을 수 없습니다.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch coordinates:", error);
+      toast.error("위치 정보를 가져오는 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
