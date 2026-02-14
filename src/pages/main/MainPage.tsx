@@ -5,6 +5,7 @@ import { Loading, ErrorMessage, LocationIcon } from "@shared/ui";
 import { useGeolocation } from "@shared/lib/hooks/useGeolocation";
 import { useWeatherQuery } from "@entities/weather/api/queries";
 import { mapWeatherResponseToData } from "@entities/weather/lib/weatherMapper";
+import { useReverseGeocodeQuery } from "@entities/location/api/queries";
 
 const MainPage = () => {
   const {
@@ -20,6 +21,12 @@ const MainPage = () => {
     error: weatherError,
     refetch,
   } = useWeatherQuery(
+    coordinates?.lat ?? 0,
+    coordinates?.lon ?? 0,
+    !!coordinates,
+  );
+
+  const { data: reverseGeocodeName } = useReverseGeocodeQuery(
     coordinates?.lat ?? 0,
     coordinates?.lon ?? 0,
     !!coordinates,
@@ -61,10 +68,13 @@ const MainPage = () => {
             />
           )}
 
-          {!isLoading && weatherResponse && (
+          {!isLoading && weatherResponse && reverseGeocodeName && (
             <div className="max-w-sm">
               <WeatherCard
-                weather={mapWeatherResponseToData(weatherResponse)}
+                weather={mapWeatherResponseToData(
+                  weatherResponse,
+                  reverseGeocodeName,
+                )}
               />
             </div>
           )}

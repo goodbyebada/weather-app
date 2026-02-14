@@ -2,10 +2,10 @@ import type { WeatherResponse, WeatherData } from "@shared/types/weather.types";
 
 export const mapWeatherResponseToData = (
   response: WeatherResponse,
-  locationName?: string,
+  locationName: string,
 ): WeatherData => {
   return {
-    locationName: locationName || response.name,
+    locationName,
     temp: response.main.temp,
     tempMin: response.main.temp_min,
     tempMax: response.main.temp_max,

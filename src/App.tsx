@@ -11,7 +11,10 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<MainPage />} />
-          <Route path="/weather/:lat/:lon" element={<WeatherDetailPage />} />
+          <Route
+            path="/weather/:districtName"
+            element={<WeatherDetailPage />}
+          />
           <Route path="/test" element={<TestPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
