@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { HourlyForecast } from "@widgets/hourly-forecast";
 import { Loading, ErrorMessage, StarIcon, Card } from "@shared/ui";
@@ -7,7 +8,10 @@ import {
 } from "@entities/weather/api/queries";
 import { mapWeatherResponseToData } from "@entities/weather/lib/weatherMapper";
 import { useFavoriteStore } from "@entities/favorite/model/store";
-import { useGeocodeQuery } from "@entities/location/api/queries";
+import {
+  useGeocodeQuery,
+  useReverseGeocodeQuery,
+} from "@entities/location/api/queries";
 import { parseDistrict } from "@entities/location/lib/searchDistricts";
 
 const WeatherDetailPage = () => {
@@ -22,10 +26,35 @@ const WeatherDetailPage = () => {
     ? `${district.city} ${district.district || ""} ${district.dong || ""}`.trim()
     : "";
 
+  console.log(`[상세] URL에서 추출한 지명: ${decodedName}`);
+
   const { data: coords, isLoading: isCoordsLoading } = useGeocodeQuery(
     fullAddress,
     !!fullAddress,
   );
+
+  if (coords) {
+    console.log(
+      `[상세] 지오코딩으로 찾은 좌표: 위도 ${coords.lat}, 경도 ${coords.lon}`,
+    );
+  }
+
+  const { data: officialName, isLoading: isOfficialNameLoading } =
+    useReverseGeocodeQuery(coords?.lat ?? 0, coords?.lon ?? 0, !!coords);
+
+  if (officialName) {
+    console.log(`[상세] 역지오코딩으로 확인된 공식 지명: ${officialName}`);
+  }
+
+  // URL의 지명이 공식 지명과 다를 경우 URL 업데이트 (보정)
+  useEffect(() => {
+    if (officialName && officialName !== decodedName) {
+      console.log(`[상세] 주소 보정 시도: ${decodedName} -> ${officialName}`);
+      navigate(`/weather/${encodeURIComponent(officialName)}`, {
+        replace: true,
+      });
+    }
+  }, [officialName, decodedName, navigate]);
 
   const {
     data: weatherResponse,
@@ -37,19 +66,15 @@ const WeatherDetailPage = () => {
   const { data: hourlyData, isLoading: isHourlyLoading } =
     useHourlyForecastQuery(coords?.lat ?? 0, coords?.lon ?? 0, !!coords);
 
-  if (!decodedName) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50">
-        <ErrorMessage message="잘못된 지역입니다." />
-      </main>
-    );
-  }
+  const isLoading =
+    isCoordsLoading || isWeatherLoading || isOfficialNameLoading;
+  const isNotFound = !isCoordsLoading && coords === null;
 
-  const isLoading = isCoordsLoading || isWeatherLoading;
+  const displayLocationName = officialName || decodedName;
 
   const weather =
-    weatherResponse && decodedName
-      ? mapWeatherResponseToData(weatherResponse, decodedName)
+    weatherResponse && displayLocationName
+      ? mapWeatherResponseToData(weatherResponse, displayLocationName)
       : null;
 
   const favorited = weather ? isFavorite(weather.locationName) : false;
@@ -83,111 +108,136 @@ const WeatherDetailPage = () => {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-3xl px-4 py-8">
-        {/* 상단 네비게이션 */}
-        <nav className="mb-6 flex items-center justify-between">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-1 rounded-xl px-4 py-2 text-gray-600 transition-colors hover:bg-gray-100"
-            aria-label="뒤로가기"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M12.5 15L7.5 10L12.5 5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            뒤로
-          </button>
-
-          {weather && (
+      {/* 고정 헤더 - 항상 표시 */}
+      <header className="sticky top-0 z-50 border-b border-gray-100 bg-gray-50/80 backdrop-blur-md">
+        <div className="mx-auto max-w-3xl px-4 py-4">
+          <nav className="flex items-center justify-between">
             <button
-              onClick={handleFavoriteToggle}
-              className={`rounded-xl px-4 py-2 transition-colors ${
-                favorited
-                  ? "bg-yellow-100 text-yellow-600"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-              aria-label={favorited ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+              onClick={() => navigate("/")}
+              className="flex items-center gap-1 rounded-xl px-4 py-2 text-gray-600 transition-colors hover:bg-gray-100"
+              aria-label="뒤로가기"
             >
-              <StarIcon className={favorited ? "fill-current" : ""} />
-            </button>
-          )}
-        </nav>
-
-        {/* 로딩 */}
-        {isLoading && <Loading type="card" count={2} />}
-
-        {/* 에러 */}
-        {!isLoading && weatherError && (
-          <ErrorMessage
-            message="날씨 정보를 불러올 수 없습니다."
-            onRetry={() => refetchWeather()}
-          />
-        )}
-
-        {/* 날씨 정보 */}
-        {weather && (
-          <>
-            {/* 메인 날씨 카드 */}
-            <Card
-              className={`mb-6 overflow-hidden border-none bg-gradient-to-br p-8 ${getBackgroundClass(weather.description)}`}
-            >
-              <div className="text-center">
-                <h1 className="text-2xl font-bold opacity-90">
-                  {weather.locationName.split("-").pop()}
-                </h1>
-                <p className="mt-1 text-sm opacity-75">
-                  {weather.locationName.split("-").slice(0, -1).join(" ")}
-                </p>
-                <img
-                  src={`https://openweathermap.org/img/wn/${weather.icon}@4x.png`}
-                  alt={weather.description}
-                  className="mx-auto h-32 w-32 drop-shadow-lg"
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M12.5 15L7.5 10L12.5 5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
-                <div className="text-6xl font-bold">
-                  {Math.round(weather.temp)}°
-                </div>
-                <p className="mt-2 text-lg capitalize opacity-90">
-                  {weather.description}
-                </p>
-                <div className="mt-3 flex justify-center gap-6 text-sm font-medium opacity-80">
-                  <span>최고: {Math.round(weather.tempMax)}°</span>
-                  <span>최저: {Math.round(weather.tempMin)}°</span>
-                </div>
-              </div>
-            </Card>
+              </svg>
+              <span className="font-medium">뒤로</span>
+            </button>
 
-            {/* 추가 정보 */}
-            <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <InfoCard
-                label="체감 온도"
-                value={`${Math.round(weather.feelsLike)}°`}
-              />
-              <InfoCard label="습도" value={`${weather.humidity}%`} />
-              <InfoCard label="풍속" value={`${weather.windSpeed} m/s`} />
-              <InfoCard
-                label="업데이트"
-                value={new Intl.DateTimeFormat("ko-KR", {
-                  hour: "numeric",
-                  minute: "numeric",
-                  hour12: true,
-                }).format(weather.dt * 1000)}
-              />
-            </div>
+            {weather && (
+              <button
+                onClick={handleFavoriteToggle}
+                className={`rounded-xl px-4 py-2 transition-colors ${
+                  favorited
+                    ? "bg-yellow-100 text-yellow-600"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+                aria-label={favorited ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+              >
+                <StarIcon className={favorited ? "fill-current" : ""} />
+              </button>
+            )}
+          </nav>
+        </div>
+      </header>
 
-            {/* 시간별 예보 */}
-            {isHourlyLoading && <Loading type="card" />}
-            {hourlyData && <HourlyForecast items={hourlyData} />}
+      <div className="mx-auto max-w-3xl px-4 py-8">
+        {/* 지역을 찾을 수 없는 경우 */}
+        {!decodedName || isNotFound ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <ErrorMessage
+              message={
+                isNotFound
+                  ? "해당 지역의 위치 정보를 찾을 수 없습니다. 주소를 정확히 입력하셨는지 확인해주세요."
+                  : "잘못된 지역입니다."
+              }
+            />
+            <button
+              onClick={() => navigate("/")}
+              className="mt-6 rounded-xl bg-primary px-6 py-2.5 font-medium text-white shadow-lg transition-all hover:bg-primary-dark active:scale-95"
+            >
+              홈으로 돌아가기
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* 로딩 */}
+            {isLoading && <Loading type="card" count={2} />}
+
+            {/* 에러 */}
+            {!isLoading && weatherError && (
+              <ErrorMessage
+                message="날씨 정보를 불러올 수 없습니다."
+                onRetry={() => refetchWeather()}
+              />
+            )}
+
+            {/* 날씨 정보 */}
+            {weather && (
+              <>
+                {/* 메인 날씨 카드 */}
+                <Card
+                  className={`mb-6 overflow-hidden border-none bg-gradient-to-br p-8 ${getBackgroundClass(weather.description)}`}
+                >
+                  <div className="text-center">
+                    <h1 className="text-2xl font-bold opacity-90">
+                      {weather.locationName.split("-").pop()}
+                    </h1>
+                    <p className="mt-1 text-sm opacity-75">
+                      {weather.locationName.split("-").slice(0, -1).join(" ")}
+                    </p>
+                    <img
+                      src={`https://openweathermap.org/img/wn/${weather.icon}@4x.png`}
+                      alt={weather.description}
+                      className="mx-auto h-32 w-32 drop-shadow-lg"
+                    />
+                    <div className="text-6xl font-bold">
+                      {Math.round(weather.temp)}°
+                    </div>
+                    <p className="mt-2 text-lg capitalize opacity-90">
+                      {weather.description}
+                    </p>
+                    <div className="mt-3 flex justify-center gap-6 text-sm font-medium opacity-80">
+                      <span>최고: {Math.round(weather.tempMax)}°</span>
+                      <span>최저: {Math.round(weather.tempMin)}°</span>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 추가 정보 */}
+                <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <InfoCard
+                    label="체감 온도"
+                    value={`${Math.round(weather.feelsLike)}°`}
+                  />
+                  <InfoCard label="습도" value={`${weather.humidity}%`} />
+                  <InfoCard label="풍속" value={`${weather.windSpeed} m/s`} />
+                  <InfoCard
+                    label="업데이트"
+                    value={new Intl.DateTimeFormat("ko-KR", {
+                      hour: "numeric",
+                      minute: "numeric",
+                      hour12: true,
+                    }).format(weather.dt * 1000)}
+                  />
+                </div>
+
+                {/* 시간별 예보 */}
+                {isHourlyLoading && <Loading type="card" />}
+                {hourlyData && <HourlyForecast items={hourlyData} />}
+              </>
+            )}
           </>
         )}
       </div>
