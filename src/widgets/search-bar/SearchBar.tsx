@@ -89,7 +89,7 @@ const SearchBar = () => {
   const handleSelect = async (result: LocationSearchResult) => {
     const { district } = result;
     const fullAddress =
-      `${district.city} ${district.district || ""} ${district.dong || ""}`.trim();
+      `${district.city} ${district.district || ""} ${district.dong || ""} ${district.li || ""}`.trim();
 
     setQuery(fullAddress);
     if (inputRef.current) {
@@ -204,7 +204,9 @@ const SearchBar = () => {
                     ? "시/도"
                     : result.matchType === "district"
                       ? "시/군/구"
-                      : "읍/면/동"}{" "}
+                      : result.matchType === "dong"
+                        ? "읍/면/동"
+                        : "리"}{" "}
                   매칭
                 </span>
               </div>
