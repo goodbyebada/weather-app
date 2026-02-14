@@ -31,7 +31,8 @@ interface KakaoGeocodingResponse {
 export const fetchCoordinates = async (
   query: string,
 ): Promise<Coordinates | null> => {
-  const searchAddress = query.trim().split(/\s+/).pop() || "";
+  const searchAddress = query.trim();
+  console.log(`[Geocoding] 카카오 API 송신 주소: "${searchAddress}"`);
 
   if (!searchAddress) return null;
 
