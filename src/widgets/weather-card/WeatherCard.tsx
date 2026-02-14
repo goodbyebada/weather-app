@@ -7,17 +7,19 @@ import type { WeatherData } from "@shared/types/weather.types";
 
 interface WeatherCardProps {
   weather: WeatherData;
+  originalName?: string;
   onFavoriteToggle?: () => void;
 }
 
-const WeatherCard = ({ weather, onFavoriteToggle }: WeatherCardProps) => {
+const WeatherCard = ({ weather, originalName, onFavoriteToggle }: WeatherCardProps) => {
   const navigate = useNavigate();
   const { favorites, addFavorite, removeFavorite, isFavorite } =
     useFavoriteStore();
 
-  const favorited = isFavorite(weather.locationName);
+  const lookupName = originalName || weather.locationName;
+  const favorited = isFavorite(lookupName);
   const favoriteItem = favorites.find(
-    (f) => f.originalName === weather.locationName,
+    (f) => f.originalName === lookupName,
   );
 
   const handleCardClick = () => {
@@ -59,12 +61,25 @@ const WeatherCard = ({ weather, onFavoriteToggle }: WeatherCardProps) => {
     >
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-semibold opacity-90">
-            {weather.locationName.split("-").pop()}
-          </h3>
-          <p className="text-xs opacity-75">
-            {weather.locationName.split("-").slice(0, -1).join(" ")}
-          </p>
+          {originalName ? (
+            <>
+              <h3 className="text-lg font-semibold opacity-90">
+                {weather.locationName}
+              </h3>
+              <p className="text-[11px] opacity-50">
+                {originalName.split("-").join(" ")}
+              </p>
+            </>
+          ) : (
+            <>
+              <h3 className="text-lg font-semibold opacity-90">
+                {weather.locationName.split("-").pop()}
+              </h3>
+              <p className="text-xs opacity-75">
+                {weather.locationName.split("-").slice(0, -1).join(" ")}
+              </p>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {favorited && favoriteItem && (
