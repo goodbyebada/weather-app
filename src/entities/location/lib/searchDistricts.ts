@@ -1,3 +1,9 @@
+import {
+  getChoseong,
+  canBeChoseong,
+  hasBatchim,
+  disassembleCompleteCharacter,
+} from "es-hangul";
 import type {
   District,
   LocationSearchResult,
@@ -12,44 +18,16 @@ const parseDistrict = (raw: string): District => {
     city: parts[0],
     district: parts[1],
     dong: parts[2],
+    li: parts[3],
   };
 };
 
 // 파싱된 전체 지역 목록 (앱 시작 시 1회 파싱)
 const allDistricts: District[] = (rawDistricts as string[]).map(parseDistrict);
 
-// 한글 초성 테이블
-const CHOSUNG = [
-  "ㄱ",
-  "ㄲ",
-  "ㄴ",
-  "ㄷ",
-  "ㄸ",
-  "ㄹ",
-  "ㅁ",
-  "ㅂ",
-  "ㅃ",
-  "ㅅ",
-  "ㅆ",
-  "ㅇ",
-  "ㅈ",
-  "ㅉ",
-  "ㅊ",
-  "ㅋ",
-  "ㅌ",
-  "ㅍ",
-  "ㅎ",
-];
-
-// 한글 문자에서 초성 추출
-const getChosung = (char: string): string => {
-  const code = char.charCodeAt(0);
-  if (code < 0xac00 || code > 0xd7a3) return char;
-  return CHOSUNG[Math.floor((code - 0xac00) / 588)];
-};
-
 /**
  * 한글 포함 여부 확인 (초성 및 혼합 검색 지원)
+ * es-hangul의 getChoseong, canBeChoseong을 래핑하여 매칭 시작 인덱스를 반환
  * @param target 대상 문자열 (예: "광주광역시")
  * @param query 검색어 (예: "광ㅈ", "ㅈㄹ")
  * @returns 매칭 성공 시 시작 인덱스, 실패 시 -1
@@ -64,19 +42,32 @@ export const koreanIncludes = (target: string, query: string): number => {
       const targetChar = normalizedTarget[i + j];
       const queryChar = normalizedQuery[j];
 
-      // 검색어 문자가 초성인 경우
-      if (CHOSUNG.includes(queryChar)) {
-        if (getChosung(targetChar) !== queryChar) {
+      if (canBeChoseong(queryChar)) {
+        // 검색어 문자가 초성인 경우: 대상 문자의 초성과 비교
+        if (getChoseong(targetChar) !== queryChar) {
           match = false;
           break;
         }
-      }
-      // 검색어 문자가 완성형인 경우
-      else {
-        if (targetChar !== queryChar) {
+      } else if (
+        j === normalizedQuery.length - 1 &&
+        !hasBatchim(queryChar) &&
+        disassembleCompleteCharacter(queryChar) != null
+      ) {
+        // 마지막 글자가 받침 없는 한글인 경우: 초성+중성만 비교 ("강나" → "강남")
+        const qd = disassembleCompleteCharacter(queryChar);
+        const td = disassembleCompleteCharacter(targetChar);
+        if (
+          !qd ||
+          !td ||
+          qd.choseong !== td.choseong ||
+          qd.jungseong !== td.jungseong
+        ) {
           match = false;
           break;
         }
+      } else if (targetChar !== queryChar) {
+        match = false;
+        break;
       }
     }
     if (match) return i;
@@ -84,6 +75,17 @@ export const koreanIncludes = (target: string, query: string): number => {
 
   return -1;
 };
+
+// 매칭 필드 정의
+const FIELDS: {
+  key: keyof District;
+  type: LocationSearchResult["matchType"];
+}[] = [
+  { key: "city", type: "city" },
+  { key: "district", type: "district" },
+  { key: "dong", type: "dong" },
+  { key: "li", type: "li" },
+];
 
 // District의 각 계층에서 매칭 확인
 const matchDistrict = (
@@ -93,28 +95,49 @@ const matchDistrict = (
   const normalizedQuery = query.trim();
   if (!normalizedQuery) return null;
 
-  // 시 → 구 → 동 순서로 매칭 (광역 자치단체 우선)
-  const cityIndex = koreanIncludes(district.city, normalizedQuery);
-  if (cityIndex !== -1) {
-    return { district, matchType: "city" };
+  const tokens = normalizedQuery.split(/\s+/);
+
+  if (tokens.length > 1) {
+    // 복합 쿼리: 모든 토큰이 각각 어딘가 필드에 매칭되어야 함
+    const fields = FIELDS.map((f) => district[f.key]).filter(
+      Boolean,
+    ) as string[];
+    const allMatched = tokens.every((token) =>
+      fields.some((field) => koreanIncludes(field, token) !== -1),
+    );
+    if (!allMatched) return null;
+
+    // 가장 구체적인(마지막) 매칭 필드의 matchType 반환
+    let lastMatchType: LocationSearchResult["matchType"] = "city";
+    for (const { key, type } of FIELDS) {
+      const value = district[key];
+      if (
+        value &&
+        tokens.some((token) => koreanIncludes(value, token) !== -1)
+      ) {
+        lastMatchType = type;
+      }
+    }
+    return { district, matchType: lastMatchType };
   }
-  if (district.district) {
-    const index = koreanIncludes(district.district, normalizedQuery);
-    if (index !== -1) return { district, matchType: "district" };
-  }
-  if (district.dong) {
-    const index = koreanIncludes(district.dong, normalizedQuery);
-    if (index !== -1) return { district, matchType: "dong" };
+
+  // 단일 토큰: 시 → 구 → 동 → 리 순서로 매칭
+  for (const { key, type } of FIELDS) {
+    const value = district[key];
+    if (value && koreanIncludes(value, normalizedQuery) !== -1) {
+      return { district, matchType: type };
+    }
   }
 
   return null;
 };
 
-// 검색 결과 정렬: matchType 우선순위 (city > district > dong), 같은 타입이면 이름순
+// 검색 결과 정렬: matchType 우선순위 (city > district > dong > li), 같은 타입이면 이름순
 const MATCH_PRIORITY: Record<LocationSearchResult["matchType"], number> = {
   city: 0,
   district: 1,
   dong: 2,
+  li: 3,
 };
 
 const sortResults = (
@@ -153,7 +176,8 @@ export interface SearchOptions {
 /**
  * 지역 검색 함수
  * - 일반 텍스트 검색 및 초성 검색(ㅅㅇ → 서울), 혼합 검색(광ㅈ → 광주) 지원
- * - 계층적 매칭 (시 > 구 > 동)
+ * - 복합 쿼리 지원 ("경기도 군포시" → 공백으로 분리된 다중 토큰 검색)
+ * - 계층적 매칭 (시 > 구 > 동 > 리)
  * - 결과는 구체적인 매칭 우선 정렬
  */
 export const searchDistricts = (
@@ -176,4 +200,4 @@ export const searchDistricts = (
   return sorted.slice(0, maxResults);
 };
 
-export { allDistricts, parseDistrict, getChosung, CHOSUNG };
+export { allDistricts, parseDistrict };
