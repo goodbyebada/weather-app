@@ -11,7 +11,14 @@ const meta = {
   argTypes: {
     type: {
       control: "select",
-      options: ["card", "text", "circle"],
+      options: [
+        "card",
+        "text",
+        "circle",
+        "weather-main",
+        "hourly",
+        "info-grid",
+      ],
     },
     count: {
       control: { type: "number", min: 1, max: 10 },
@@ -39,6 +46,27 @@ export const TextType: Story = {
 export const CircleType: Story = {
   args: {
     type: "circle",
+    count: 1,
+  },
+};
+
+export const WeatherMain: Story = {
+  args: {
+    type: "weather-main",
+    count: 1,
+  },
+};
+
+export const Hourly: Story = {
+  args: {
+    type: "hourly",
+    count: 1,
+  },
+};
+
+export const InfoGrid: Story = {
+  args: {
+    type: "info-grid",
     count: 1,
   },
 };
