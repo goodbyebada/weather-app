@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchCurrentWeather, fetchForecast } from "@shared/api/weather.api";
 import { parseApiError } from "@shared/api/error";
 import { SearchBar } from "@widgets/search-bar";
+import { toast } from "@shared/ui/toast";
 
 // 서울 기본 좌표
 const DEFAULT_LAT = 37.5683;
@@ -12,21 +13,29 @@ const DEFAULT_LON = 126.9778;
 export const TestPage = () => {
   const { lat: paramLat, lon: paramLon } = useParams();
 
-  const [lat, setLat] = useState(DEFAULT_LAT);
-  const [lon, setLon] = useState(DEFAULT_LON);
+  const initialLat = paramLat ? Number(paramLat) : DEFAULT_LAT;
+  const initialLon = paramLon ? Number(paramLon) : DEFAULT_LON;
+
+  const [lat, setLat] = useState(initialLat);
+  const [lon, setLon] = useState(initialLon);
   const [queryCoords, setQueryCoords] = useState({
-    lat: DEFAULT_LAT,
-    lon: DEFAULT_LON,
+    lat: initialLat,
+    lon: initialLon,
   });
 
-  // URL 파라미터가 있으면 해당 좌표로 업데이트
+  // URL 파라미터가 변경되면 해당 좌표로 업데이트 (초기 렌더링 이후)
   useEffect(() => {
     if (paramLat && paramLon) {
       const nLat = Number(paramLat);
       const nLon = Number(paramLon);
-      setLat(nLat);
-      setLon(nLon);
-      setQueryCoords({ lat: nLat, lon: nLon });
+
+      setLat((prev) => (prev !== nLat ? nLat : prev));
+      setLon((prev) => (prev !== nLon ? nLon : prev));
+      setQueryCoords((prev) =>
+        prev.lat !== nLat || prev.lon !== nLon
+          ? { lat: nLat, lon: nLon }
+          : prev,
+      );
     }
   }, [paramLat, paramLon]);
 
@@ -58,6 +67,50 @@ export const TestPage = () => {
       >
         <h2 style={{ marginBottom: 16 }}>Location Search (Widget Test)</h2>
         <SearchBar />
+      </div>
+
+      <div
+        style={{
+          marginBottom: 40,
+          background: "#fff",
+          padding: 20,
+          borderRadius: 16,
+          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+        }}
+      >
+        <h2 style={{ marginBottom: 16 }}>Toast Test</h2>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            onClick={() => toast.success("성공 알림입니다!")}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+          >
+            Success
+          </button>
+          <button
+            onClick={() => toast.error("에러 알림입니다!")}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+          >
+            Error
+          </button>
+          <button
+            onClick={() => toast.info("중복 알림 테스트")}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            중복 테스트 (연타)
+          </button>
+          <button
+            onClick={() => {
+              for (let i = 1; i <= 6; i++) {
+                setTimeout(() => {
+                  toast.info(`${i}번째 알림`);
+                }, i * 100);
+              }
+            }}
+            className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+          >
+            6개 연속 (Limit 4 확인)
+          </button>
+        </div>
       </div>
 
       <div style={{ marginBottom: 20 }}>
@@ -94,7 +147,7 @@ export const TestPage = () => {
       {weatherQuery.data && (
         <pre
           style={{
-            background: "#000000",
+            background: "white",
             padding: 10,
             overflow: "auto",
             maxHeight: 400,
@@ -114,7 +167,7 @@ export const TestPage = () => {
       {forecastQuery.data && (
         <pre
           style={{
-            background: "#000000",
+            background: "white",
             padding: 10,
             overflow: "auto",
             maxHeight: 400,
