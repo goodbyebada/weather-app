@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import ToastContainer from "./ToastContainer";
 import { toast } from "./toast-manager";
 import Button from "../button/Button";

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Modal from "@shared/ui/modal/Modal";
 import Input from "@shared/ui/input/Input";
 import Button from "@shared/ui/button/Button";
@@ -18,13 +18,6 @@ const EditNameModal = ({
 }: EditNameModalProps) => {
   const [name, setName] = useState(initialName);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (isOpen) {
-      setName(initialName);
-      setError("");
-    }
-  }, [isOpen, initialName]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

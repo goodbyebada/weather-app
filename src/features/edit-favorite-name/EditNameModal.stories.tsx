@@ -1,6 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { type ComponentProps, useState } from "react";
 import EditNameModal from "./EditNameModal";
-import { useState } from "react";
+
 import Button from "@shared/ui/button/Button";
 
 const meta: Meta<typeof EditNameModal> = {
@@ -21,17 +22,19 @@ const meta: Meta<typeof EditNameModal> = {
 export default meta;
 type Story = StoryObj<typeof EditNameModal>;
 
-const ModalWithTrigger = (args: any) => {
+const ModalWithTrigger = (args: ComponentProps<typeof EditNameModal>) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div>
       <Button onClick={() => setIsOpen(true)}>이름 수정하기</Button>
-      <EditNameModal
-        {...args}
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-      />
+      {isOpen && (
+        <EditNameModal
+          {...args}
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+        />
+      )}
     </div>
   );
 };
