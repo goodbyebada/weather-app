@@ -4,6 +4,7 @@ export interface District {
   city: string; // "서울특별시"
   district?: string; // "종로구"
   dong?: string; // "청운동"
+  li?: string; // "계곡리"
 }
 
 // 좌표 정보
@@ -15,5 +16,7 @@ export interface Coordinates {
 // 검색 결과 항목
 export interface LocationSearchResult {
   district: District;
-  matchType: "city" | "district" | "dong";
+  matchType: "city" | "district" | "dong" | "li";
+  matchIndex: number;
+  isExactMatch?: boolean;
 }
