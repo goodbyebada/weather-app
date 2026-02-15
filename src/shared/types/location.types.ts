@@ -17,4 +17,6 @@ export interface Coordinates {
 export interface LocationSearchResult {
   district: District;
   matchType: "city" | "district" | "dong" | "li";
+  matchIndex: number;
+  isExactMatch?: boolean;
 }
