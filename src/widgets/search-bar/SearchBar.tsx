@@ -13,25 +13,75 @@ import type { LocationSearchResult } from "@shared/types/location.types";
 
 /**
  * 검색 결과 내 매칭 텍스트 하이라이팅 컴포넌트
+ * - 복합 쿼리: 각 토큰별 개별 하이라이팅
+ * - 연속 입력: 공백 제거 후 매칭 → 원본 위치에 하이라이팅
  */
 const HighlightText = ({ text, query }: { text: string; query: string }) => {
   if (!query.trim()) return <span>{text}</span>;
 
-  const startIndex = koreanIncludes(text, query);
+  // 공백 제거 폴백: 토큰이 연속 입력일 때 텍스트에서 공백 제거 후 매칭
+  const findRangeWithStrip = (
+    target: string,
+    token: string,
+  ): [number, number] | null => {
+    const indexMap: number[] = [];
+    for (let i = 0; i < target.length; i++) {
+      if (target[i] !== " ") indexMap.push(i);
+    }
+    const stripped = target.replace(/ /g, "");
+    const idx = koreanIncludes(stripped, token);
+    if (idx === -1) return null;
+    const end = Math.min(idx + token.length - 1, indexMap.length - 1);
+    return [indexMap[idx], indexMap[end] + 1];
+  };
 
-  if (startIndex === -1) return <span>{text}</span>;
+  const ranges: [number, number][] = [];
+  const tokens = query.trim().split(/\s+/);
 
-  const before = text.substring(0, startIndex);
-  const match = text.substring(startIndex, startIndex + query.length);
-  const after = text.substring(startIndex + query.length);
+  for (const token of tokens) {
+    const startIndex = koreanIncludes(text, token);
+    if (startIndex !== -1) {
+      ranges.push([startIndex, startIndex + token.length]);
+    } else {
+      // 연속 입력 폴백
+      const range = findRangeWithStrip(text, token);
+      if (range) ranges.push(range);
+    }
+  }
 
-  return (
-    <span>
-      {before}
-      <span className="font-bold text-primary">{match}</span>
-      {after}
-    </span>
-  );
+  if (ranges.length === 0) return <span>{text}</span>;
+
+  // 정렬 및 겹치는 구간 병합
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged: [number, number][] = [ranges[0]];
+  for (let i = 1; i < ranges.length; i++) {
+    const last = merged[merged.length - 1];
+    if (ranges[i][0] <= last[1]) {
+      last[1] = Math.max(last[1], ranges[i][1]);
+    } else {
+      merged.push(ranges[i]);
+    }
+  }
+
+  // 세그먼트 렌더링
+  const segments: React.ReactNode[] = [];
+  let cursor = 0;
+  for (const [start, end] of merged) {
+    if (cursor < start) {
+      segments.push(text.substring(cursor, start));
+    }
+    segments.push(
+      <span key={start} className="font-bold text-primary">
+        {text.substring(start, end)}
+      </span>,
+    );
+    cursor = end;
+  }
+  if (cursor < text.length) {
+    segments.push(text.substring(cursor));
+  }
+
+  return <span>{segments}</span>;
 };
 const SearchBar = () => {
   const [query, setQuery] = useState("");
