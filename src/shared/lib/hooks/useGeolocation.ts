@@ -8,27 +8,17 @@ interface GeolocationState {
   isPermissionDenied: boolean;
 }
 
-const SEOUL_COORDINATES: Coordinates = { lat: 37.5683, lon: 126.9778 };
-
 const supportsGeolocation =
   typeof navigator !== "undefined" && !!navigator.geolocation;
 
 const useGeolocation = () => {
-  const [state, setState] = useState<GeolocationState>(() => {
-    if (!supportsGeolocation) {
-      return {
-        coordinates: SEOUL_COORDINATES,
-        isLoading: false,
-        error: "브라우저가 위치 서비스를 지원하지 않습니다.",
-        isPermissionDenied: false,
-      };
-    }
-    return {
-      coordinates: null,
-      isLoading: true,
-      error: null,
-      isPermissionDenied: false,
-    };
+  const [state, setState] = useState<GeolocationState>({
+    coordinates: null,
+    isLoading: supportsGeolocation,
+    error: supportsGeolocation
+      ? null
+      : "브라우저가 위치 서비스를 지원하지 않습니다.",
+    isPermissionDenied: false,
   });
 
   useEffect(() => {
@@ -49,7 +39,7 @@ const useGeolocation = () => {
       (error) => {
         const isDenied = error.code === error.PERMISSION_DENIED;
         setState({
-          coordinates: SEOUL_COORDINATES,
+          coordinates: null,
           isLoading: false,
           error: isDenied
             ? "위치 권한이 거부되었습니다."
@@ -58,7 +48,6 @@ const useGeolocation = () => {
         });
       },
       {
-        //  GPS 대신 Wi-Fi/IP 기반 위치 사용
         enableHighAccuracy: false,
         timeout: 10000,
         maximumAge: 1000 * 60 * 30,
@@ -69,4 +58,4 @@ const useGeolocation = () => {
   return state;
 };
 
-export { useGeolocation, SEOUL_COORDINATES };
+export { useGeolocation };

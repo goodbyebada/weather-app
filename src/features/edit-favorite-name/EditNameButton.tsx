@@ -7,15 +7,28 @@ import { useFavoriteStore } from "@entities/favorite/model/store";
 interface EditNameButtonProps {
   favoriteId: string;
   initialName: string;
+  onOpen?: () => void;
+  onClose?: () => void;
 }
 
-const EditNameButton = ({ favoriteId, initialName }: EditNameButtonProps) => {
+const EditNameButton = ({
+  favoriteId,
+  initialName,
+  onOpen,
+  onClose,
+}: EditNameButtonProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { updateFavoriteName } = useFavoriteStore();
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsModalOpen(true);
+    onOpen?.();
+  };
+
+  const handleClose = () => {
+    setIsModalOpen(false);
+    onClose?.();
   };
 
   return (
@@ -31,7 +44,7 @@ const EditNameButton = ({ favoriteId, initialName }: EditNameButtonProps) => {
         createPortal(
           <EditNameModal
             isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
+            onClose={handleClose}
             initialName={initialName}
             onConfirm={(newName) => updateFavoriteName(favoriteId, newName)}
           />,

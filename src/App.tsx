@@ -6,11 +6,14 @@ import NotFoundPage from "@pages/not-found/NotFoundPage";
 import { TestPage } from "@pages/test/TestPage";
 import { ToastContainer } from "@shared/ui/toast";
 
+import { ScrollToTop } from "@shared/lib/ScrollToTop";
+
 function App() {
   return (
     <QueryProvider>
       <ToastContainer />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<MainPage />} />
           <Route

@@ -227,7 +227,7 @@ const SearchBar = () => {
           ref={listRef}
           id="search-results"
           role="listbox"
-          className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden max-h-80 overflow-y-auto"
+          className="absolute z-dropdown w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden max-h-80 overflow-y-auto"
         >
           {results.map((result, index) => (
             <li

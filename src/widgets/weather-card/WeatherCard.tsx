@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "@shared/ui/card/Card";
 import { StarIcon } from "@shared/ui/icons";
@@ -9,22 +10,29 @@ interface WeatherCardProps {
   weather: WeatherData;
   originalName?: string;
   onFavoriteToggle?: () => void;
+  hideEditButton?: boolean;
 }
 
 const WeatherCard = ({
   weather,
   originalName,
   onFavoriteToggle,
+  hideEditButton,
 }: WeatherCardProps) => {
   const navigate = useNavigate();
   const { favorites, addFavorite, removeFavorite, isFavorite } =
     useFavoriteStore();
+
+  // 수정 모달이 열려있는지 여부 (카드 크기 고정용)
+  const [isEditing, setIsEditing] = useState(false);
 
   const lookupName = originalName || weather.locationName;
   const favorited = isFavorite(lookupName);
   const favoriteItem = favorites.find((f) => f.originalName === lookupName);
 
   const handleCardClick = () => {
+    // 수정 중일 때는 카드 클릭 방지
+    if (isEditing) return;
     const name = originalName || weather.locationName;
     navigate(`/weather/${encodeURIComponent(name)}`);
   };
@@ -57,10 +65,15 @@ const WeatherCard = ({
     return "bg-gradient-to-br from-primary to-primary-dark text-white";
   };
 
+  // 수정 중일 때는 scale-105 고정, 아닐 때는 hover 동작
+  const scaleClass = isEditing
+    ? "scale-[1.02]"
+    : "transition-all hover:scale-[1.02] active:scale-[0.98]";
+
   return (
     <Card
       onClick={handleCardClick}
-      className={`relative cursor-pointer overflow-hidden border-none p-6 transition-all hover:scale-[1.02] active:scale-[0.98] ${getBackgroundStyles(weather.description)}`}
+      className={`relative cursor-pointer overflow-hidden border-none p-6 ${scaleClass} ${getBackgroundStyles(weather.description)}`}
     >
       <div className="flex justify-between items-start">
         <div>
@@ -85,10 +98,12 @@ const WeatherCard = ({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {favorited && favoriteItem && (
+          {favorited && favoriteItem && !hideEditButton && (
             <EditNameButton
               favoriteId={favoriteItem.id}
               initialName={favoriteItem.name}
+              onOpen={() => setIsEditing(true)}
+              onClose={() => setIsEditing(false)}
             />
           )}
           <button

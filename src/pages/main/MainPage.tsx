@@ -1,8 +1,11 @@
+import { useEffect } from "react";
 import { SearchBar } from "@widgets/search-bar";
 import { WeatherCard } from "@widgets/weather-card";
 import { FavoritesList } from "@widgets/favorites-list";
 import { Loading, ErrorMessage, LocationIcon } from "@shared/ui";
-import { useGeolocation } from "@shared/lib/hooks/useGeolocation";
+import { useAppLocation } from "@shared/lib/hooks/useAppLocation";
+import { DEFAULT_LOCATION_QUERY } from "@shared/constants/location";
+import { toast } from "@shared/ui/toast";
 import { useWeatherQuery } from "@entities/weather/api/queries";
 import { mapWeatherResponseToData } from "@entities/weather/lib/weatherMapper";
 import { useReverseGeocodeQuery } from "@entities/location/api/queries";
@@ -12,8 +15,8 @@ const MainPage = () => {
     coordinates,
     isLoading: isLocating,
     error: locationError,
-    isPermissionDenied,
-  } = useGeolocation();
+    isDefaultLocation,
+  } = useAppLocation();
 
   const {
     data: weatherResponse,
@@ -34,6 +37,12 @@ const MainPage = () => {
 
   const isLoading = isLocating || isWeatherLoading;
 
+  useEffect(() => {
+    if (isDefaultLocation) {
+      toast.info("위치 권한을 확인할 수 없어 기본 지역을 표시합니다.");
+    }
+  }, [isDefaultLocation]);
+
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -50,8 +59,10 @@ const MainPage = () => {
           <div className="mb-4 flex items-center gap-2">
             <LocationIcon className="text-primary" />
             <h2 className="text-xl font-bold text-gray-800">현재 위치</h2>
-            {isPermissionDenied && (
-              <span className="text-sm text-gray-400">(기본: 서울)</span>
+            {isDefaultLocation && (
+              <span className="text-sm text-gray-400">
+                (기본: {DEFAULT_LOCATION_QUERY})
+              </span>
             )}
           </div>
 
@@ -59,7 +70,7 @@ const MainPage = () => {
             <p className="mb-3 text-sm text-gray-500">{locationError}</p>
           )}
 
-          {isLoading && <Loading type="card" />}
+          {isLoading && <Loading type="card" className="max-w-sm" />}
 
           {!isLoading && weatherError && (
             <ErrorMessage
@@ -75,6 +86,7 @@ const MainPage = () => {
                   weatherResponse,
                   reverseGeocodeName,
                 )}
+                hideEditButton={true}
               />
             </div>
           )}
