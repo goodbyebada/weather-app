@@ -26,25 +26,13 @@ const WeatherDetailPage = () => {
     ? `${district.city} ${district.district || ""} ${district.dong || ""}`.trim()
     : "";
 
-  console.log(`[상세] URL에서 추출한 지명: ${decodedName}`);
-
   const { data: coords, isLoading: isCoordsLoading } = useGeocodeQuery(
     fullAddress,
     !!fullAddress,
   );
 
-  if (coords) {
-    console.log(
-      `[상세] 지오코딩으로 찾은 좌표: 위도 ${coords.lat}, 경도 ${coords.lon}`,
-    );
-  }
-
   const { data: officialName, isLoading: isOfficialNameLoading } =
     useReverseGeocodeQuery(coords?.lat ?? 0, coords?.lon ?? 0, !!coords);
-
-  if (officialName) {
-    console.log(`[상세] 역지오코딩으로 확인된 공식 지명: ${officialName}`);
-  }
 
   // URL의 지명이 공식 지명과 다를 경우 URL 업데이트 (보정)
   useEffect(() => {
