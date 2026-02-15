@@ -97,7 +97,7 @@ export const fetchReverseGeocode = async (
       },
     );
 
-    const region = data.documents.find((doc) => doc.region_type === "H");
+    const region = data.documents.find((doc) => doc.region_type === "B");
     if (!region) return null;
 
     const parts = [
