@@ -97,7 +97,7 @@ const WeatherDetailPage = () => {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* 고정 헤더 - 항상 표시 */}
-      <header className="sticky top-0 z-50 border-b border-gray-100 bg-gray-50/80 backdrop-blur-md">
+      <header className="sticky top-0 z-header border-b border-gray-100 bg-gray-50/80 backdrop-blur-md">
         <div className="mx-auto max-w-3xl px-4 py-4">
           <nav className="flex items-center justify-between">
             <button

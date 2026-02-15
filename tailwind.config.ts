@@ -37,6 +37,12 @@ export default {
       animation: {
         slideUp: "slideUp 0.3s ease-out forwards",
       },
+      zIndex: {
+        header: "50",
+        dropdown: "60",
+        toast: "100",
+        modal: "9999",
+      },
     },
   },
   plugins: [],
