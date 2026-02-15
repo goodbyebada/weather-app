@@ -129,6 +129,24 @@ const matchDistrict = (
     }
   }
 
+  // 연속 입력 매칭: "경상북도의성군" → 필드를 이어붙인 문자열에서 검색
+  const parts = FIELDS.map((f) => district[f.key]).filter(Boolean) as string[];
+  const concatenated = parts.join("");
+  const concatIndex = koreanIncludes(concatenated, normalizedQuery);
+  if (concatIndex !== -1) {
+    const endPos = concatIndex + normalizedQuery.length;
+    let cumLen = 0;
+    let matchType: LocationSearchResult["matchType"] = "city";
+    for (const { key, type } of FIELDS) {
+      const value = district[key];
+      if (!value) continue;
+      cumLen += value.length;
+      matchType = type;
+      if (endPos <= cumLen) break;
+    }
+    return { district, matchType };
+  }
+
   return null;
 };
 
