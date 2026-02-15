@@ -70,7 +70,7 @@ const MainPage = () => {
             <p className="mb-3 text-sm text-gray-500">{locationError}</p>
           )}
 
-          {isLoading && <Loading type="card" />}
+          {isLoading && <Loading type="card" className="max-w-sm" />}
 
           {!isLoading && weatherError && (
             <ErrorMessage

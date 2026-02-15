@@ -51,8 +51,11 @@ const WeatherDetailPage = () => {
     refetch: refetchWeather,
   } = useWeatherQuery(coords?.lat ?? 0, coords?.lon ?? 0, !!coords);
 
-  const { data: hourlyData, isLoading: isHourlyLoading } =
-    useHourlyForecastQuery(coords?.lat ?? 0, coords?.lon ?? 0, !!coords);
+  const { data: hourlyData } = useHourlyForecastQuery(
+    coords?.lat ?? 0,
+    coords?.lon ?? 0,
+    !!coords,
+  );
 
   const isLoading =
     isCoordsLoading || isWeatherLoading || isOfficialNameLoading;
@@ -161,7 +164,13 @@ const WeatherDetailPage = () => {
         ) : (
           <>
             {/* 로딩 */}
-            {isLoading && <Loading type="card" count={2} />}
+            {isLoading && (
+              <>
+                <Loading type="weather-main" />
+                <Loading type="info-grid" />
+                <Loading type="hourly" />
+              </>
+            )}
 
             {/* 에러 */}
             {!isLoading && weatherError && (
@@ -222,7 +231,6 @@ const WeatherDetailPage = () => {
                 </div>
 
                 {/* 시간별 예보 */}
-                {isHourlyLoading && <Loading type="card" />}
                 {hourlyData && <HourlyForecast items={hourlyData} />}
               </>
             )}

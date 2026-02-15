@@ -39,7 +39,7 @@ const FavoritesList = () => {
         const query = weatherQueries[index];
 
         if (isLoading || !query.data) {
-          return <Loading key={favorite.id} type="card" />;
+          return <Loading key={favorite.id} type="card" className="h-full" />;
         }
 
         const weatherData = mapWeatherResponseToData(
