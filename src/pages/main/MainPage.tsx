@@ -86,6 +86,7 @@ const MainPage = () => {
                   weatherResponse,
                   reverseGeocodeName,
                 )}
+                hideEditButton={true}
               />
             </div>
           )}

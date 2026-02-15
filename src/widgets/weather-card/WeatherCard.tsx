@@ -9,12 +9,14 @@ interface WeatherCardProps {
   weather: WeatherData;
   originalName?: string;
   onFavoriteToggle?: () => void;
+  hideEditButton?: boolean;
 }
 
 const WeatherCard = ({
   weather,
   originalName,
   onFavoriteToggle,
+  hideEditButton,
 }: WeatherCardProps) => {
   const navigate = useNavigate();
   const { favorites, addFavorite, removeFavorite, isFavorite } =
@@ -85,7 +87,7 @@ const WeatherCard = ({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {favorited && favoriteItem && (
+          {favorited && favoriteItem && !hideEditButton && (
             <EditNameButton
               favoriteId={favoriteItem.id}
               initialName={favoriteItem.name}
