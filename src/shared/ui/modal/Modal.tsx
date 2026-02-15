@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
   isOpen: boolean;
@@ -41,8 +42,14 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
   useEffect(() => {
     if (isOpen) {
       previousFocusRef.current = document.activeElement as HTMLElement;
-      document.addEventListener("keydown", handleKeyDown);
+
+      // 스크롤바 너비 계산 및 패딩 추가 (레이아웃 시프트 방지)
+      const scrollbarWidth =
+        window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+
+      document.addEventListener("keydown", handleKeyDown);
 
       requestAnimationFrame(() => {
         const firstFocusable = contentRef.current?.querySelector<HTMLElement>(
@@ -55,13 +62,14 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
       previousFocusRef.current?.focus();
     };
   }, [isOpen, handleKeyDown]);
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       ref={overlayRef}
       className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4"
@@ -105,7 +113,8 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 
