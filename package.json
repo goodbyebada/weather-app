@@ -13,7 +13,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "prepare": "husky",
-    "chromatic": "npx chromatic"
+    "chromatic": "npx chromatic",
+    "preview-bundle": "open stats.html"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.21",
@@ -52,6 +53,7 @@
     "playwright": "^1.58.2",
     "postcss": "^8.5.6",
     "prettier": "^3.8.1",
+    "rollup-plugin-visualizer": "^6.0.5",
     "storybook": "^10.2.8",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.9.3",

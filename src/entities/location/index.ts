@@ -1,6 +1,5 @@
 export {
   searchDistricts,
-  allDistricts,
   parseDistrict,
   koreanIncludes,
 } from "./lib/searchDistricts";

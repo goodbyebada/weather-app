@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { SearchIcon } from "@shared/ui/icons";
 import Input from "@shared/ui/input/Input";
@@ -98,10 +98,14 @@ const SearchBar = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  // 검색 결과 계산 (useMemo 사용)
-  const results = useMemo(() => {
-    if (!debouncedQuery.trim()) return [];
-    return searchDistricts(debouncedQuery);
+  const [results, setResults] = useState<LocationSearchResult[]>([]);
+
+  useEffect(() => {
+    if (!debouncedQuery.trim()) {
+      setResults([]);
+      return;
+    }
+    searchDistricts(debouncedQuery).then(setResults);
   }, [debouncedQuery]);
 
   // 검색어가 변경되면 하이라이트 인덱스 초기화 (render phase adjustment)
@@ -169,10 +173,11 @@ const SearchBar = () => {
 
     if (!showResults) {
       if (e.key === "Enter" && query.trim()) {
-        const currentResults = searchDistricts(query);
-        if (currentResults.length === 0) {
-          toast.error("해당 장소의 정보가 제공되지 않습니다.");
-        }
+        searchDistricts(query).then((currentResults) => {
+          if (currentResults.length === 0) {
+            toast.error("해당 장소의 정보가 제공되지 않습니다.");
+          }
+        });
       }
       return;
     }
