@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { SEO } from "@shared/ui/SEO/SEO";
 import { useParams, useNavigate } from "react-router-dom";
 import { HourlyForecast } from "@widgets/hourly-forecast";
-import { Loading, ErrorMessage, StarIcon, Card } from "@shared/ui";
+import { Loading, ErrorMessage, StarIcon, Card, WeatherIcon } from "@shared/ui";
 import {
   useWeatherQuery,
   useHourlyForecastQuery,
@@ -199,8 +199,8 @@ const WeatherDetailPage = () => {
                     <p className="mt-1 text-sm opacity-75">
                       {weather.locationName.split("-").slice(0, -1).join(" ")}
                     </p>
-                    <img
-                      src={`https://openweathermap.org/img/wn/${weather.icon}@4x.png`}
+                    <WeatherIcon
+                      code={weather.icon}
                       alt={weather.description}
                       className="mx-auto h-32 w-32 drop-shadow-lg"
                     />

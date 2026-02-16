@@ -1,4 +1,5 @@
 import Card from "@shared/ui/card/Card";
+import { WeatherIcon } from "@shared/ui/icons";
 import type { HourlyWeather } from "@shared/types/weather.types";
 
 interface HourlyForecastProps {
@@ -30,8 +31,8 @@ const HourlyForecast = ({ items }: HourlyForecastProps) => {
             <span className="text-xs font-medium text-gray-500 mb-3">
               {formatTime(item.dt)}
             </span>
-            <img
-              src={`https://openweathermap.org/img/wn/${item.icon}.png`}
+            <WeatherIcon
+              code={item.icon}
               alt={item.description}
               className="w-12 h-12 mb-2 drop-shadow-sm"
             />

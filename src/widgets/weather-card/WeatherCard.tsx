@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "@shared/ui/card/Card";
-import { StarIcon } from "@shared/ui/icons";
+import { StarIcon, WeatherIcon } from "@shared/ui/icons";
 import { EditNameButton } from "@features/edit-favorite-name";
 import { useFavoriteStore } from "@entities/favorite/model/store";
 import type { WeatherData } from "@shared/types/weather.types";
@@ -127,8 +127,8 @@ const WeatherCard = ({
             {weather.description}
           </div>
         </div>
-        <img
-          src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
+        <WeatherIcon
+          code={weather.icon}
           alt={weather.description}
           className="w-16 h-16 drop-shadow-lg"
         />

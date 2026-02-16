@@ -5,4 +5,10 @@ export { Loading, Skeleton } from "./loading";
 export { ErrorMessage } from "./error-message";
 export { Modal } from "./modal";
 export { ToastContainer, toast } from "./toast";
-export { SearchIcon, StarIcon, LocationIcon, EditIcon } from "./icons";
+export {
+  SearchIcon,
+  StarIcon,
+  LocationIcon,
+  EditIcon,
+  WeatherIcon,
+} from "./icons";
