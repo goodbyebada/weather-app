@@ -3,6 +3,7 @@ import { useFavoritesWeatherQuery } from "@entities/weather/api/queries";
 import { mapWeatherResponseToData } from "@entities/weather/lib/weatherMapper";
 import { WeatherCard } from "@widgets/weather-card";
 import Loading from "@shared/ui/loading/Loading";
+import { Star } from "lucide-react";
 
 const FavoritesList = () => {
   const { favorites } = useFavoriteStore();
@@ -18,7 +19,9 @@ const FavoritesList = () => {
   if (favorites.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-        <div className="text-4xl mb-4">⭐</div>
+        <div className="text-4xl mb-4">
+          <Star className="w-12 h-12 text-yellow-400" />
+        </div>
         <h3 className="text-xl font-bold text-gray-700">
           즐겨찾기가 비어있습니다
         </h3>
