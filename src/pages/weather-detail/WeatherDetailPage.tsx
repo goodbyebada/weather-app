@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { SEO } from "@shared/ui/SEO/SEO";
 import { useParams, useNavigate } from "react-router-dom";
 import { HourlyForecast } from "@widgets/hourly-forecast";
 import { Loading, ErrorMessage, StarIcon, Card } from "@shared/ui";
@@ -99,6 +100,10 @@ const WeatherDetailPage = () => {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <SEO
+        title={`${displayLocationName || "지역 날씨"} 날씨`}
+        description={`${displayLocationName}의 상세 날씨 정보를 확인하세요.`}
+      />
       {/* 고정 헤더 - 항상 표시 */}
       <header className="sticky top-0 z-header border-b border-gray-100 bg-gray-50/80 backdrop-blur-md">
         <div className="mx-auto max-w-3xl px-4 py-4">

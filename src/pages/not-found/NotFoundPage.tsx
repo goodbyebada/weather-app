@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { SEO } from "@shared/ui/SEO/SEO";
 import { Button } from "@shared/ui";
 
 const NotFoundPage = () => {
@@ -6,6 +7,7 @@ const NotFoundPage = () => {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50">
+      <SEO title="페이지를 찾을 수 없음" />
       <div className="text-center">
         <p className="text-6xl font-bold text-gray-300">404</p>
         <h1 className="mt-4 text-xl font-bold text-gray-800">
