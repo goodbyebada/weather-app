@@ -164,10 +164,18 @@ const SearchBar = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showResults) return;
-
     // IME 입력 중 엔터키 등 중복 이벤트 방지
     if (e.nativeEvent.isComposing) return;
+
+    if (!showResults) {
+      if (e.key === "Enter" && query.trim()) {
+        const currentResults = searchDistricts(query);
+        if (currentResults.length === 0) {
+          toast.error("해당 장소의 정보가 제공되지 않습니다.");
+        }
+      }
+      return;
+    }
 
     switch (e.key) {
       case "ArrowDown":

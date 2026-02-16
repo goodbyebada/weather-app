@@ -183,5 +183,17 @@ describe("searchDistricts", () => {
     it("매칭 불가능한 쿼리는 빈 결과를 반환한다", () => {
       expect(searchDistricts("zzz없는지역")).toEqual([]);
     });
+
+    it("존재하지 않는 장소는 빈 결과를 반환한다 (토스트 트리거 조건)", () => {
+      expect(searchDistricts("뉴욕")).toEqual([]);
+      expect(searchDistricts("도쿄")).toEqual([]);
+      expect(searchDistricts("abcdef")).toEqual([]);
+    });
+
+    it("존재하는 장소는 결과를 반환한다 (토스트 미트리거 조건)", () => {
+      expect(searchDistricts("ㅇㅇ").length).toBeGreaterThan(0);
+      expect(searchDistricts("서울").length).toBeGreaterThan(0);
+      expect(searchDistricts("강남").length).toBeGreaterThan(0);
+    });
   });
 });
