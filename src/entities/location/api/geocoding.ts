@@ -55,8 +55,7 @@ export const fetchCoordinates = async (
       lat: parseFloat(y),
       lon: parseFloat(x),
     };
-  } catch (error) {
-    console.error("Geocoding fetch error:", error);
+  } catch {
     return null;
   }
 };
@@ -107,8 +106,7 @@ export const fetchReverseGeocode = async (
     ].filter(Boolean);
 
     return parts.join("-");
-  } catch (error) {
-    console.error("Reverse geocoding error:", error);
+  } catch {
     return null;
   }
 };

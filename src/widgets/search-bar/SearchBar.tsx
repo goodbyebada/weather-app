@@ -159,8 +159,7 @@ const SearchBar = () => {
       } else {
         toast.error("해당 위치의 좌표를 찾을 수 없습니다.");
       }
-    } catch (error) {
-      console.error("Failed to fetch coordinates:", error);
+    } catch {
       toast.error("위치 정보를 가져오는 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);

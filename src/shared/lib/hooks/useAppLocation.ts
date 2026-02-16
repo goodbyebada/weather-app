@@ -32,8 +32,7 @@ export const useAppLocation = () => {
           } else {
             throw new Error("Default location not found");
           }
-        } catch (error) {
-          console.error("Failed to fetch default location:", error);
+        } catch {
           // 최후의 수단: 하드코딩된 서울 좌표
           setFallbackState({
             coordinates: { lat: 37.5665, lon: 126.978 },

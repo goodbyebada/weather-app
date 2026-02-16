@@ -33,8 +33,7 @@ const loadDistricts = async (): Promise<District[]> => {
     const rawDistricts = (await response.json()) as string[];
     allDistricts = rawDistricts.map(parseDistrict);
     return allDistricts;
-  } catch (error) {
-    console.error("Failed to load districts:", error);
+  } catch {
     return [];
   }
 };

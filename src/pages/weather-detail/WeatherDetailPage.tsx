@@ -56,9 +56,7 @@ const WeatherDetailPage = () => {
 
       // 같은 레벨로 맞춘 후에도 다르면 보정
       if (trimmedOfficialName !== decodedName) {
-        console.log(
-          `[상세] 주소 보정 시도: ${decodedName} -> ${trimmedOfficialName}`,
-        );
+
         navigate(`/weather/${encodeURIComponent(trimmedOfficialName)}`, {
           replace: true,
         });
