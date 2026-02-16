@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { SEO } from "@shared/ui/SEO/SEO";
 import { useParams, useNavigate } from "react-router-dom";
 import { HourlyForecast } from "@widgets/hourly-forecast";
-import { Loading, ErrorMessage, StarIcon, Card } from "@shared/ui";
+import { Loading, ErrorMessage, StarIcon, Card, WeatherIcon } from "@shared/ui";
 import {
   useWeatherQuery,
   useHourlyForecastQuery,
@@ -199,8 +199,8 @@ const WeatherDetailPage = () => {
                     <p className="mt-1 text-sm opacity-75">
                       {weather.locationName.split("-").slice(0, -1).join(" ")}
                     </p>
-                    <img
-                      src={`https://openweathermap.org/img/wn/${weather.icon}@4x.png`}
+                    <WeatherIcon
+                      code={weather.icon}
                       alt={weather.description}
                       className="mx-auto h-32 w-32 drop-shadow-lg"
                     />
@@ -227,11 +227,14 @@ const WeatherDetailPage = () => {
                   <InfoCard label="풍속" value={`${weather.windSpeed} m/s`} />
                   <InfoCard
                     label="업데이트"
-                    value={new Intl.DateTimeFormat("ko-KR", {
-                      hour: "numeric",
-                      minute: "numeric",
-                      hour12: true,
-                    }).format(weather.dt * 1000)}
+                    value={(() => {
+                      const d = new Date(weather.dt * 1000);
+                      const h = d.getHours();
+                      const period = h < 12 ? "오전" : "오후";
+                      const displayH = h % 12 || 12;
+                      const m = d.getMinutes().toString().padStart(2, "0");
+                      return `${period} ${displayH}:${m}`;
+                    })()}
                   />
                 </div>
 
