@@ -17,7 +17,7 @@ export default defineConfig({
     react(),
     visualizer({
       filename: "stats.html",
-      open: true,
+      open: false,
     }),
   ],
   resolve: {
