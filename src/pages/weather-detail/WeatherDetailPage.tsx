@@ -39,12 +39,32 @@ const WeatherDetailPage = () => {
   // URL의 지명이 공식 지명과 다를 경우 URL 업데이트 (보정)
   useEffect(() => {
     if (officialName && officialName !== decodedName) {
-      console.log(`[상세] 주소 보정 시도: ${decodedName} -> ${officialName}`);
-      navigate(`/weather/${encodeURIComponent(officialName)}`, {
-        replace: true,
-      });
+      const originalDistrict = district;
+      const officialDistrict = parseDistrict(officialName);
+
+      // 원본과 같은 레벨까지만 사용 (같은 레벨 내 보정 허용)
+      // 예: 원본이 "청운" (dong만 있음) → 공식 지명 "청운면-용두리"에서 "청운면"만 사용
+      const trimmedOfficialName = (() => {
+        const parts = [
+          officialDistrict.city,
+          officialDistrict.district,
+          originalDistrict?.dong ? officialDistrict.dong : null,
+          originalDistrict?.li ? officialDistrict.li : null,
+        ].filter(Boolean);
+        return parts.join("-");
+      })();
+
+      // 같은 레벨로 맞춘 후에도 다르면 보정
+      if (trimmedOfficialName !== decodedName) {
+        console.log(
+          `[상세] 주소 보정 시도: ${decodedName} -> ${trimmedOfficialName}`,
+        );
+        navigate(`/weather/${encodeURIComponent(trimmedOfficialName)}`, {
+          replace: true,
+        });
+      }
     }
-  }, [officialName, decodedName, navigate]);
+  }, [officialName, decodedName, navigate, district]);
 
   const {
     data: weatherResponse,
@@ -63,7 +83,32 @@ const WeatherDetailPage = () => {
     isCoordsLoading || isWeatherLoading || isOfficialNameLoading;
   const isNotFound = !isCoordsLoading && coords === null;
 
-  const displayLocationName = officialName || decodedName;
+  // 사용자가 검색한 레벨 그대로 표시 (단, 같은 레벨 내 보정은 허용)
+  // 예: "청운" -> "청운면" (같은 dong 레벨 내 보정, OK)
+  //     "의왕시" -> "고천동" (district -> dong 레벨 업그레이드, NO)
+  const displayLocationName = (() => {
+    if (!officialName || officialName === decodedName) return decodedName;
+
+    const originalDistrict = district;
+    const officialDistrict = parseDistrict(officialName);
+
+    // 레벨이 같으면 공식 지명 사용 (같은 레벨 내 보정 허용)
+    const originalHasDong = !!originalDistrict?.dong;
+    const officialHasDong = !!officialDistrict.dong;
+    const originalHasLi = !!originalDistrict?.li;
+    const officialHasLi = !!officialDistrict.li;
+
+    // 레벨이 같으면 공식 지명 사용
+    if (
+      originalHasDong === officialHasDong &&
+      originalHasLi === officialHasLi
+    ) {
+      return officialName;
+    }
+
+    // 레벨이 다르면 원본 사용 (레벨 업그레이드 방지)
+    return decodedName;
+  })();
 
   const weather =
     weatherResponse && displayLocationName
