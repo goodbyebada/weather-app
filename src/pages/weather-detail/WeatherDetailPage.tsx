@@ -25,7 +25,7 @@ const WeatherDetailPage = () => {
   const decodedName = districtName ? decodeURIComponent(districtName) : "";
   const district = decodedName ? parseDistrict(decodedName) : null;
   const fullAddress = district
-    ? `${district.city} ${district.district || ""} ${district.dong || ""}`.trim()
+    ? `${district.city} ${district.district || ""} ${district.dong || ""} ${district.li || ""}`.trim()
     : "";
 
   const { data: coords, isLoading: isCoordsLoading } = useGeocodeQuery(

@@ -32,8 +32,6 @@ export const fetchCoordinates = async (
   query: string,
 ): Promise<Coordinates | null> => {
   const searchAddress = query.trim();
-  console.log(`[Geocoding] 카카오 API 송신 주소: "${searchAddress}"`);
-
   if (!searchAddress) return null;
 
   try {
@@ -68,6 +66,7 @@ interface KakaoRegionDocument {
   region_1depth_name: string;
   region_2depth_name: string;
   region_3depth_name: string;
+  region_4depth_name: string;
 }
 
 interface KakaoRegionResponse {
@@ -104,6 +103,7 @@ export const fetchReverseGeocode = async (
       region.region_1depth_name,
       region.region_2depth_name,
       region.region_3depth_name,
+      region.region_4depth_name,
     ].filter(Boolean);
 
     return parts.join("-");
