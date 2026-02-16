@@ -25,7 +25,9 @@ function App() {
                   path="/weather/:districtName"
                   element={<WeatherDetailPage />}
                 />
-                <Route path="/test" element={<TestPage />} />
+                {import.meta.env.DEV && (
+                  <Route path="/test" element={<TestPage />} />
+                )}
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </BrowserRouter>
