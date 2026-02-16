@@ -7,10 +7,11 @@ interface HourlyForecastProps {
 
 const HourlyForecast = ({ items }: HourlyForecastProps) => {
   const formatTime = (dt: number) => {
-    return new Intl.DateTimeFormat("ko-KR", {
-      hour: "numeric",
-      hour12: true,
-    }).format(dt * 1000);
+    const date = new Date(dt * 1000);
+    const hours = date.getHours();
+    const period = hours < 12 ? "오전" : "오후";
+    const displayHour = hours % 12 || 12;
+    return `${period} ${displayHour}시`;
   };
 
   return (

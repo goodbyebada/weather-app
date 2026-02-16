@@ -227,11 +227,14 @@ const WeatherDetailPage = () => {
                   <InfoCard label="풍속" value={`${weather.windSpeed} m/s`} />
                   <InfoCard
                     label="업데이트"
-                    value={new Intl.DateTimeFormat("ko-KR", {
-                      hour: "numeric",
-                      minute: "numeric",
-                      hour12: true,
-                    }).format(weather.dt * 1000)}
+                    value={(() => {
+                      const d = new Date(weather.dt * 1000);
+                      const h = d.getHours();
+                      const period = h < 12 ? "오전" : "오후";
+                      const displayH = h % 12 || 12;
+                      const m = d.getMinutes().toString().padStart(2, "0");
+                      return `${period} ${displayH}:${m}`;
+                    })()}
                   />
                 </div>
 
