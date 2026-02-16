@@ -5,12 +5,12 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#3B82F6",
-          hover: "#2563EB",
+          DEFAULT: "#1D4ED8", // blue-700 (API 6.0:1 contrast)
+          hover: "#1E40AF", // blue-800
         },
         secondary: {
-          DEFAULT: "#8B5CF6",
-          hover: "#7C3AED",
+          DEFAULT: "#7C3AED", // violet-600 (API 5.12:1 contrast)
+          hover: "#6D28D9", // violet-700
         },
         gray: {
           50: "#F9FAFB",
