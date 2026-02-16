@@ -129,7 +129,6 @@ const FIELDS: {
 ];
 
 // District의 각 계층에서 매칭 확인
-// District의 각 계층에서 매칭 확인
 const matchDistrict = (
   district: District,
   query: string,
@@ -137,14 +136,18 @@ const matchDistrict = (
   const normalizedQuery = query.trim();
   if (!normalizedQuery) return null;
 
+  // 공백 기준으로 나누기
   const tokens = normalizedQuery.split(/\s+/);
 
   if (tokens.length > 1) {
     // 복합 쿼리: 모든 토큰이 각각 어딘가 필드(또는 연결 문자열)에 매칭되어야 함
+
     const fields = FIELDS.map((f) => district[f.key]).filter(
       Boolean,
     ) as string[];
     const concatenated = fields.join("");
+
+    // token -> 검색어(query)
     const allMatched = tokens.every(
       (token) =>
         fields.some((field) => koreanIncludes(field, token) !== -1) ||
@@ -156,19 +159,25 @@ const matchDistrict = (
     let lastMatchType: LocationSearchResult["matchType"] = "city";
     let minMatchIndex = 999;
 
+    // FIELDS 순서대로(시 -> 구 -> 동 -> 리) 루프
     for (const { key, type } of FIELDS) {
       const value = district[key];
+
+      // 현재 필드(value)에 사용자가 검색한 토큰 중 하나라도 포함되어 있나요?
       if (
         value &&
         tokens.some((token) => {
           const idx = koreanIncludes(value, token);
           if (idx !== -1) {
+            // 1. 매칭된 인덱스 중 가장 작은 값(가장 앞쪽 위치)을 기록
             minMatchIndex = Math.min(minMatchIndex, idx);
             return true;
           }
           return false;
         })
       ) {
+        // 2. 가장 마지막(구체적)에 매칭된 필드 타입을 저장 (loop가 '시' -> '구' -> '동' 순서)
+        // -> 정렬 시 'Dong' 매칭보다 'District' 매칭을 우선하거나, 매칭된 레벨을 UI에 표시하기 위함
         lastMatchType = type;
       }
     }

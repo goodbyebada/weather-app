@@ -1,7 +1,27 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { searchDistricts, koreanIncludes } from "./searchDistricts";
 
 // ─── koreanIncludes ─────────────────────────────────────────
+
+import fs from "fs";
+import path from "path";
+
+// 실제 데이터 로드
+const districtsPath = path.resolve(
+  __dirname,
+  "../../../../public/data/korea_districts.json",
+);
+const districtsData = JSON.parse(fs.readFileSync(districtsPath, "utf-8"));
+
+// fetch 모킹
+const fetchMock = vi.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve(districtsData),
+  }),
+);
+
+vi.stubGlobal("fetch", fetchMock);
 
 describe("koreanIncludes", () => {
   it("정확 일치 시 시작 인덱스를 반환한다", () => {
