@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { SEO } from "@shared/ui/SEO/SEO";
 import { SearchBar } from "@widgets/search-bar";
 import { WeatherCard } from "@widgets/weather-card";
 import { FavoritesList } from "@widgets/favorites-list";
@@ -45,6 +46,12 @@ const MainPage = () => {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <SEO
+        title={
+          reverseGeocodeName ? `${reverseGeocodeName} 날씨` : "오늘의 날씨"
+        }
+        description="현재 위치의 실시간 날씨 정보를 확인하세요."
+      />
       <div className="mx-auto max-w-6xl px-4 py-8">
         {/* 검색바 */}
         <section aria-label="지역 검색" className="mb-10">
