@@ -24,7 +24,6 @@ export const fetchCurrentWeather = async (
   const { data } = await weatherClient.get<WeatherResponse>("/weather", {
     params: { lat, lon },
   });
-  console.log("Current Weather API Response:", data, lat, lon, data.weather);
   return data;
 };
 
@@ -36,6 +35,5 @@ export const fetchForecast = async (
   const { data } = await weatherClient.get<ForecastResponse>("/forecast", {
     params: { lat, lon },
   });
-  console.log("Forecast API Response:", data);
   return data;
 };
