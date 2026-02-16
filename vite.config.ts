@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "node:url";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
+import { visualizer } from "rollup-plugin-visualizer";
 import { playwright } from "@vitest/browser-playwright";
 const dirname =
   typeof __dirname !== "undefined"
@@ -12,7 +13,13 @@ const dirname =
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    visualizer({
+      filename: "stats.html",
+      open: true,
+    }),
+  ],
   resolve: {
     alias: {
       "@app": path.resolve(__dirname, "src/app"),
