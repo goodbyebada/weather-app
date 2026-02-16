@@ -9,7 +9,7 @@ interface SEOProps {
 
 export const SEO = ({ title, description, image, url }: SEOProps) => {
   const metaDescription = description || "실시간 날씨 정보를 확인하세요.";
-  const metaImage = image || "/og-image.png"; // Default image path
+  const metaImage = image || "/og-image.svg"; // Default image path
   const metaUrl = url || window.location.href;
 
   return (
