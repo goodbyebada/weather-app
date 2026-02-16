@@ -1,4 +1,4 @@
-# 날씨 앱
+# ROK Weather (대한민국 날씨)
 
 ## 프로젝트 실행 방법
 
@@ -55,6 +55,8 @@ npm run storybook
 
 [https://main--6992c4d87c028f4f6525fef2.chromatic.com](https://main--6992c4d87c028f4f6525fef2.chromatic.com)
 
+
+
 ### 번들 분석
 
 `rollup-plugin-visualizer`를 통해 번들 사이즈를 시각적으로 분석할 수 있습니다.
@@ -64,7 +66,7 @@ npm run storybook
 npm run preview-bundle
 ```
 
----
+
 
 ## 구현한 기능에 대한 설명
 
@@ -194,6 +196,8 @@ es-hangul은 검색 엔진이 아닌 **한글 분해/조합 유틸리티**이므
 - 하이라이트 범위 병합(merge intervals) 알고리즘 적용
 - 36개 테스트 케이스로 경계 조건 검증
 
+[☞ 검색 알고리즘 구현](docs/SEARCH_LOGIC.md)
+
 ### 3. Kakao + OpenWeatherMap 이중 API 전략
 
 #### 문제
@@ -275,17 +279,48 @@ API 구조 변경 시 mapper 레이어만 수정하면 되도록 설계하여
 
 ### 7. 접근성 구현
 
-단순 ARIA 추가가 아닌, 실제 사용 가능한 접근성을 목표로 했습니다.
+Storybook A11y Addon을 활용하여 정적 분석과 수동 테스트를 병행했으며, 단순한 ARIA 속성 추가를 넘어 **실질적인 사용성(Usability)** 개선에 집중했습니다.
 
-| 문제                 | 해결                   |
-| -------------------- | ---------------------- |
-| 모달 포커스 이탈     | 포커스 트랩 + 복원     |
-| 레이아웃 시프트      | body 스크롤 잠금 보정  |
-| 드롭다운 키보드 접근 | WAI-ARIA Combobox 패턴 |
-| IME 입력 충돌        | `isComposing` 처리     |
-| 토스트 인식 불가     | `aria-live="polite"`   |
-| 에러 인식 불가       | `role="alert"`         |
-| 장식 요소 노출       | `aria-hidden` 처리     |
+#### 7-1. 인터랙션 및 포커스 제어
+
+키보드 사용자 및 보조 기기 사용자가 맥락을 잃지 않도록 동적 요소의 초점을 관리했습니다.
+
+| 구현 대상 | 문제 상황 | 해결 전략 |
+| :--- | :--- | :--- |
+| **Modal** | 모달 열림 시 포커스가 배경으로 빠져나감 | `Focus Trap` 구현으로 포커스 가두기 및 닫힘 시 이전 요소로 포커스 복원 |
+| **Combobox** | 자동완성 드롭다운의 키보드 탐색 불가 | WAI-ARIA `combobox` 패턴 적용 (Arrow Key 탐색, Enter 선택) |
+| **IME Input** | 한글 입력 중 엔터 키 입력 시 중복 이벤트 발생 | `isComposing` 상태 체크로 IME 입력 완료 시점에만 이벤트 트리거 |
+
+#### 7-2. 스크린 리더 최적화 
+
+- **동적 알림 (Live Region)**: Toast 메시지에 `aria-live="polite"`를 적용하여 작업 흐름을 방해하지 않으면서 상태 변화를 알림
+- **에러 피드백**: 폼 에러 발생 시 `role="alert"`로 즉각적인 인지 유도
+- **장식 요소 숨김**: 의미 없는 아이콘 등 장식 요소에는 `aria-hidden="true"`를 적용하여 노이즈 제거
+- **Semantic HTML**: `div` 남용을 지양하고 `main`, `section`, `article`, `header` 등 시멘틱 태그 사용
+
+#### 7-3. 시각적 안정성 및 검증 
+
+- **Layout Shift 방지**: 모달 오픈 시 `body` 스크롤을 잠그되, 스크롤바 너비만큼 패딩을 보정하여 화면 덜컥거림 방지
+- **검증**: Storybook A11y Addon을 통해 명암비, 레이블 누락 등 접근성 위배 사항을 지속적으로 모니터링
+
+### 8. 검색 엔진 최적화 (SEO)
+
+SPA(Single Page Application)의 한계를 극복하고 소셜 미디어 공유 경험을 개선하기 위해 메타 태그를 관리했습니다.
+
+- **동적 메타 태그 주입**: `react-helmet-async`를 도입하여 페이지별(메인 vs 상세)로 최적화된 Title, Description, Canonical URL을 동적으로 생성
+- **Open Graph / Twitter Card**: 카카오톡, 슬랙, 트위터 등으로 링크 공유 시 풍부한 미리보기(이미지, 제목, 설명)가 제공되도록 설정
+- **Robots 제어**: `robots` 메타 태그를 명시하여 검색 엔진 봇의 수집 동작을 제어
+
+---
+
+## WEB PERFORMANCE
+
+Google Lighthouse를 통해 측정한 웹 성능 및 품질 지표입니다.
+메인 페이지와 상세 페이지 모두에서 **SEO 100점, 성능 92~100점**의 높은 점수를 달성했습니다.
+
+| 메인 페이지 (Main Page) | 상세 페이지 (Detail Page) |
+| :---: | :---: |
+| ![Main Lighthouse](docs/lighthouse_main.png) | ![Detail Lighthouse](docs/lighthouse_weatherDetail.png) |
 
 ---
 
@@ -305,3 +340,4 @@ API 구조 변경 시 mapper 레이어만 수정하면 되도록 설계하여
 | 컴포넌트 문서화      | Storybook 10                                                                             |
 | 코드 품질            | ESLint, Prettier, Husky, lint-staged                                                     |
 | 외부 API             | OpenWeatherMap (Current Weather, 5 Day Forecast), Kakao Local (주소 검색, 좌표→행정구역) |
+
