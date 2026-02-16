@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useErrorBoundary } from "react-error-boundary";
 import { fetchCurrentWeather, fetchForecast } from "@shared/api/weather.api";
-import { parseApiError } from "@shared/api/error";
 import { SearchBar } from "@widgets/search-bar";
 import { toast } from "@shared/ui/toast";
 
@@ -151,9 +150,7 @@ export const TestPage = () => {
       <h2>Current Weather</h2>
       {weatherQuery.isLoading && <p>로딩 중...</p>}
       {weatherQuery.isError && (
-        <p style={{ color: "red" }}>
-          {parseApiError(weatherQuery.error).message}
-        </p>
+        <p style={{ color: "red" }}>날씨 정보를 불러오지 못했습니다.</p>
       )}
       {weatherQuery.data && (
         <pre
@@ -171,9 +168,7 @@ export const TestPage = () => {
       <h2>5-Day Forecast (첫 5개)</h2>
       {forecastQuery.isLoading && <p>로딩 중...</p>}
       {forecastQuery.isError && (
-        <p style={{ color: "red" }}>
-          {parseApiError(forecastQuery.error).message}
-        </p>
+        <p style={{ color: "red" }}>예보 정보를 불러오지 못했습니다.</p>
       )}
       {forecastQuery.data && (
         <pre

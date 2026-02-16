@@ -1,6 +1,5 @@
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { fetchCurrentWeather, fetchForecast } from "@shared/api/weather.api";
-import { parseApiError } from "@shared/api/error";
 import type {
   WeatherResponse,
   ForecastResponse,
@@ -26,7 +25,6 @@ export const useWeatherQuery = (lat: number, lon: number, enabled = true) => {
     enabled,
     select: (data) => data,
     throwOnError: false,
-    meta: { parseApiError },
   });
 };
 
@@ -44,7 +42,6 @@ export const useHourlyForecastQuery = (
     enabled,
     select: (data: ForecastResponse) => mapForecastToHourly(data),
     throwOnError: false,
-    meta: { parseApiError },
   });
 };
 

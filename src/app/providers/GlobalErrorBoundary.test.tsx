@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import "@testing-library/jest-dom";
 import GlobalErrorBoundary from "./GlobalErrorBoundary";
 
 // 콘솔 에러를 억제하기 위한 설정 (테스트 중 에러 로그가 너무 많이 찍히는 것 방지)
