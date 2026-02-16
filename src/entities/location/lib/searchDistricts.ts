@@ -136,8 +136,7 @@ const matchDistrict = (
   const normalizedQuery = query.trim();
   if (!normalizedQuery) return null;
 
-  // 공백 기준으로 나누기
-  const tokens = normalizedQuery.split(/\s+/);
+  const tokens = normalizedQuery.split(/[^\w가-힣]+/);
 
   if (tokens.length > 1) {
     // 복합 쿼리: 모든 토큰이 각각 어딘가 필드(또는 연결 문자열)에 매칭되어야 함
