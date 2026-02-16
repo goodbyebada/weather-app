@@ -25,9 +25,18 @@ let allDistricts: District[] | null = null;
 
 const loadDistricts = async (): Promise<District[]> => {
   if (allDistricts) return allDistricts;
-  const rawDistricts = (await import("../data/korea_districts.json")).default;
-  allDistricts = (rawDistricts as string[]).map(parseDistrict);
-  return allDistricts;
+  try {
+    const response = await fetch("/data/korea_districts.json");
+    if (!response.ok) {
+      throw new Error("Failed to load districts data");
+    }
+    const rawDistricts = (await response.json()) as string[];
+    allDistricts = rawDistricts.map(parseDistrict);
+    return allDistricts;
+  } catch (error) {
+    console.error("Failed to load districts:", error);
+    return [];
+  }
 };
 
 /**
