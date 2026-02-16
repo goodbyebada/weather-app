@@ -14,6 +14,7 @@ import {
   useReverseGeocodeQuery,
 } from "@entities/location/api/queries";
 import { parseDistrict } from "@entities/location/lib/searchDistricts";
+import { toast } from "@shared/ui/toast/toast-manager";
 
 const WeatherDetailPage = () => {
   const { districtName } = useParams<{ districtName: string }>();
@@ -79,11 +80,14 @@ const WeatherDetailPage = () => {
     if (favorited && favoriteItem) {
       removeFavorite(favoriteItem.id);
     } else {
-      addFavorite({
+      const success = addFavorite({
         name: weather.locationName.split("-").pop() || weather.locationName,
         originalName: weather.locationName,
         coord: weather.coord,
       });
+      if (!success) {
+        toast.error("즐겨찾기는 최대 6개까지 추가할 수 있습니다");
+      }
     }
   };
 
