@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useErrorBoundary } from "react-error-boundary";
 import { fetchCurrentWeather, fetchForecast } from "@shared/api/weather.api";
 import { parseApiError } from "@shared/api/error";
 import { SearchBar } from "@widgets/search-bar";
@@ -12,9 +13,11 @@ const DEFAULT_LON = 126.9778;
 
 export const TestPage = () => {
   const { lat: paramLat, lon: paramLon } = useParams();
+  const { showBoundary } = useErrorBoundary();
 
   const initialLat = paramLat ? Number(paramLat) : DEFAULT_LAT;
   const initialLon = paramLon ? Number(paramLon) : DEFAULT_LON;
+  // ... (rest of the file until the button)
 
   const [lat, setLat] = useState(initialLat);
   const [lon, setLon] = useState(initialLon);
@@ -109,6 +112,14 @@ export const TestPage = () => {
             className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
           >
             6개 연속 (Limit 4 확인)
+          </button>
+          <button
+            onClick={() => {
+              showBoundary(new Error("테스트용 에러입니다!"));
+            }}
+            className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-black"
+          >
+            🚫 에러 바운더리 테스트 (앱 터트리기)
           </button>
         </div>
       </div>

@@ -48,15 +48,15 @@ export const Default: Story = {
 };
 
 export const Open: Story = {
+  render: (args) => <ModalWithTrigger {...args} />,
   args: {
-    isOpen: true,
     initialName: "회사",
   },
 };
 
 export const LongName: Story = {
+  render: (args) => <ModalWithTrigger {...args} />,
   args: {
-    isOpen: true,
     initialName: "엄청나게 긴 이름을 가진 즐겨찾기 장소",
   },
 };
