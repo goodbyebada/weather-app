@@ -8,8 +8,6 @@ import type {
   District,
   LocationSearchResult,
 } from "@shared/types/location.types";
-import rawDistricts from "../data/korea_districts.json";
-
 // "서울특별시-종로구-청운동" 형태의 문자열을 District 객체로 파싱
 const parseDistrict = (raw: string): District => {
   const parts = raw.split("-");
@@ -22,8 +20,15 @@ const parseDistrict = (raw: string): District => {
   };
 };
 
-// 파싱된 전체 지역 목록 (앱 시작 시 1회 파싱)
-const allDistricts: District[] = (rawDistricts as string[]).map(parseDistrict);
+// 파싱된 전체 지역 목록 (최초 호출 시 1회 로드 후 캐싱)
+let allDistricts: District[] | null = null;
+
+const loadDistricts = async (): Promise<District[]> => {
+  if (allDistricts) return allDistricts;
+  const rawDistricts = (await import("../data/korea_districts.json")).default;
+  allDistricts = (rawDistricts as string[]).map(parseDistrict);
+  return allDistricts;
+};
 
 /**
  * 한글 포함 여부 확인 (초성 및 혼합 검색 지원)
@@ -271,16 +276,17 @@ export interface SearchOptions {
  * - 계층적 매칭 (시 > 구 > 동 > 리)
  * - 결과는 정확 매칭 우선, 구체적인 매칭 우선 정렬
  */
-export const searchDistricts = (
+export const searchDistricts = async (
   query: string,
   options: SearchOptions = {},
-): LocationSearchResult[] => {
+): Promise<LocationSearchResult[]> => {
   const { maxResults = 20 } = options;
   const trimmed = query.trim();
   if (!trimmed) return [];
 
+  const districts = await loadDistricts();
   const results: LocationSearchResult[] = [];
-  for (const district of allDistricts) {
+  for (const district of districts) {
     const result = matchDistrict(district, trimmed);
     if (result) results.push(result);
   }
@@ -291,4 +297,4 @@ export const searchDistricts = (
   return sorted.slice(0, maxResults);
 };
 
-export { allDistricts, parseDistrict };
+export { parseDistrict };
