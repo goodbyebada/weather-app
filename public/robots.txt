@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Sitemap: https://weather-app-delta-lilac-78.vercel.app/sitemap.xml

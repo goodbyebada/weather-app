@@ -16,6 +16,7 @@ export const SEO = ({ title, description, image, url }: SEOProps) => {
     <Helmet>
       <title>{title} | Weather App</title>
       <meta name="description" content={metaDescription} />
+      <meta name="robots" content="index, follow" />
       <meta property="og:type" content="website" />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={metaDescription} />
